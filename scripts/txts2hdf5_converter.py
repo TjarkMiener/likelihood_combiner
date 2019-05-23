@@ -54,7 +54,7 @@ for counter,file in enumerate(files):
     print("    {}) '{}'".format(counter+1,file))
         
     # Going through the table in the txt file and storing the entries in a 2D array.
-    ts_val = np.array([[i for i in line.split()] for line in ts_file])
+    ts_val = np.array([[i for i in line.split()] for line in ts_file]).T
             
     # The first entry of each row correponds to the mass.
     # Detect the first entry and store it in a separate array.
