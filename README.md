@@ -1,6 +1,6 @@
-# LikelihoodCombiner: Combines likelihoods from different experiments.
+# LikelihoodCombiner: Combining likelihoods from different experiments.
 
-**LikelihoodCombiner** is a package under active development to combines likelihoods from different experiments. The main target of this package is to join **Dark Matter** searches using data from different gamma-ray observatories like [MAGIC](https://magic.mpp.mpg.de/), [VERITAS](https://veritas.sao.arizona.edu/), [H.E.S.S.](https://www.mpi-hd.mpg.de/hfm/HESS/) [HAWC](https://www.hawc-observatory.org/) and [*Fermi*-LAT](https://glast.sites.stanford.edu/).
+**LikelihoodCombiner** is a package under active development to combine likelihoods from different experiments. The main target of this package is to join **Dark Matter** searches using data from different gamma-ray observatories like [MAGIC](https://magic.mpp.mpg.de/), [VERITAS](https://veritas.sao.arizona.edu/), [H.E.S.S.](https://www.mpi-hd.mpg.de/hfm/HESS/) [HAWC](https://www.hawc-observatory.org/) and [*Fermi*-LAT](https://glast.sites.stanford.edu/).
 
 ## Install LikelihoodCombiner
 
