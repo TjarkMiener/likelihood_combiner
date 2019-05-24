@@ -1,0 +1,20 @@
+*.swp
+*.swo
+*.gemini
+*.index
+*.meta
+*.out
+*.ckpt
+*.tar.gz
+*.pbtxt
+*.png
+*.csv
+*.txt
+*.h5
+.DS_Store
+
+# Compiled Python files
+__pycache__/
+*.py[cod]
+
+likelihood_combiner.egg-info/
