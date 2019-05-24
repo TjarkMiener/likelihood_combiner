@@ -1,0 +1,11 @@
+# conda env create -f environment.yml
+name: lklcom
+channels:
+    - conda-forge
+    - menpo
+dependencies:
+    - python=3.7.3
+    - matplotlib
+    - numpy
+    - pytables
+    - pyyaml
