@@ -38,11 +38,11 @@ NOTE for developers: If you wish to fork/clone the respository and make changes 
 - PyYAML
 - Matplotlib
   
-## Uninstall CTLearn
+## Uninstall LikelihoodCombiner
 
 ### Remove Anaconda Environment
 
-First, remove the conda environment in which CTLearn is installed and all its dependencies:
+First, remove the conda environment in which LikelihoodCombiner is installed and all its dependencies:
 
 ```bash
 conda remove --name lklcom --all
