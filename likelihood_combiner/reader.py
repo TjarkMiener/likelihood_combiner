@@ -4,26 +4,62 @@ import tables
 import numpy as np
 import os
 
+from likelihood_combiner.gloryduck import gloryduckInfo
+
 class gloryduckReader:
     def __init__(self):
         """Constructor"""
     
-    def read_gloryduck_tstable(self,hdf5file, source=None, channel=None, collaboration=None):
+    def read_gloryduck_tstables(self,hdf5file, channels=None, sources=None, collaborations=None):
+        
+        # Get information from the gloryduck class
+        gloryduck = gloryduckInfo()
+        # List of valid collaborations:
+        gd_collaborations = gloryduck.collaborations
+        # List of valid sources:
+        gd_sources = gloryduck.sources
+        # List of valid annihilation channels:
+        gd_channels = gloryduck.channels
+        
         # Opening hdf5 file.
         h5 = tables.open_file(hdf5file, 'r')
         
-        channels = np.array(list(h5.keys()))
-        print(channels)
-        #for row in f.root.MAGIC.iterrows():
-        
-        for i,channel in enumerate(channels):
-            print(i)
-            print(channel)
-            print("channels:")
-            print(h5.root.channels[i])
+        if channels is None:
+            channels = gd_channels
+        channels = np.array(channels)
+        if sources is None:
+            sources = gd_sources
+        sources = np.array(sources)
+        if collaborations is None:
+            collaborations = gd_collaborations
+        collaborations = np.array(collaborations)
+
+        print("The tables read from '{}' ({}):".format(h5.title,hdf5file))
+        counter = 1
+        tstables = {}
+        for channel in channels:
+            if channel not in gd_channels:
+                raise ValueError("'{}' is not a valid channel!".format(channel))
+            for source in sources:
+                if source not in gd_sources:
+                    raise ValueError("'{}' is not a valid source!".format(source))
+                for collaboration in collaborations:
+                    if collaboration not in gd_collaborations:
+                        raise ValueError("'{}' is not a valid collaboration!".format(collaboration))
+
+                    if "/{}/{}/{}".format(channel,source,collaboration) in h5:
+                        print("    {}) ('{}', '{}', '{}')".format(counter,channel,source,collaboration))
+                        sigmavVsMassTable = eval("h5.root.{}.{}.{}.sigmavVsMass".format(channel,source,collaboration))
+                        print(sigmavVsMassTable)
+                        tstable = [x['ts'] for x in sigmavVsMassTable.iterrows()]
+                        massval = [x['mass'] for x in sigmavVsMassTable.iterrows()]
+                        print(massval)
+                        print(tstable)
+                        counter+=1
+         
         # Closing hdf5 file.
         h5.close()
-        return channels
+        return tstables
 
 class cirelliReader:
     def __init__(self):

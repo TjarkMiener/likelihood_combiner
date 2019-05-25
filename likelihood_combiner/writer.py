@@ -1,4 +1,5 @@
 #!/usr/bin/python'
+
 import tables
 import numpy as np
 import os
@@ -10,13 +11,14 @@ class gloryduckWriter:
         """Constructor"""
 
     def convert_txts2hdf5(self,hdf5file,path2txts):
-        #
+        
+        # Get information from the gloryduck class
         gloryduck = gloryduckInfo()
-        # List of the collaborations:
+        # List of valid collaborations:
         collaborations = gloryduck.collaborations
-        # List of sources:
+        # List of valid sources:
         sources = gloryduck.sources
-        # List of annihilation channels:
+        # List of valid annihilation channels:
         channels = gloryduck.channels
 
         # Opening the hdf5 file.
@@ -66,7 +68,7 @@ class gloryduckWriter:
             description = type("description", (tables.IsDescription,), columns_dict)
         
             # Creating the table mass vs sigmav for each source and for each channel.
-            table_name = "sigmavVsMass_{}_{}_{}".format(file_info[0],file_info[1],file_info[2])
+            table_name = "sigmavVsMass"
             table = h5.create_table(eval("h5.root.{}.{}.{}".format(file_info[0],file_info[1],file_info[2])),table_name,description,"Table of the {} collaboration for the source {} with the annihilation channel {}.".format(file_info[2],file_info[1],file_info[0]))
         
             # Filling the data of the txt file into the table of the hdf5 file.
