@@ -1,5 +1,3 @@
-#!/usr/bin/python'
-
 import tables
 import numpy as np
 import os

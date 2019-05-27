@@ -1,5 +1,3 @@
-#!/usr/bin/python'
-
 class gloryduckInfo:
     def __init__(self):
         ######################################################
