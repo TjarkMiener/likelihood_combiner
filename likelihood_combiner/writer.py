@@ -7,18 +7,17 @@ from likelihood_combiner.gloryduck import gloryduckInfo
 class gloryduckWriter:
     def __init__(self):
         """Constructor"""
-
-    def convert_txts2hdf5(self,hdf5file,path2txts):
-        
         # Get information from the gloryduck class
         gloryduck = gloryduckInfo()
         # List of valid collaborations:
-        collaborations = gloryduck.collaborations
+        self.gd_collaborations = gloryduck.collaborations
         # List of valid sources:
-        sources = gloryduck.sources
+        self.gd_sources = gloryduck.sources
         # List of valid annihilation channels:
-        channels = gloryduck.channels
-
+        self.gd_channels = gloryduck.channels
+    
+    def convert_txts2hdf5(self,hdf5file,path2txts):
+        
         # Opening the hdf5 file.
         h5 = tables.open_file(hdf5file, mode="w", title="Gloryduck database")
 
@@ -30,11 +29,11 @@ class gloryduckWriter:
     
             # Parsing the file name and checking validation with the predefined information.
             file_info = file.replace('.txt','').split("_")
-            if file_info[0] not in channels:
+            if file_info[0] not in self.gd_channels:
                 raise ValueError("'{}' is not a valid channel!".format(file_info[0]))
-            if file_info[1] not in sources:
+            if file_info[1] not in self.gd_sources:
                 raise ValueError("'{}' is not a valid source!".format(file_info[1]))
-            if file_info[2] not in collaborations:
+            if file_info[2] not in self.gd_collaborations:
                 raise ValueError("'{}' is not a valid collaboration!".format(file_info[2]))
     
             # Creating a new node in the hdf5 file, if it isn't already existing.
