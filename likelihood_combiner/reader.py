@@ -18,7 +18,7 @@ class gloryduckReader:
         # List of valid annihilation channels:
         self.gd_channels = gloryduck.channels
     
-    def read_gloryduck_tstables(self,hdf5file, channels=None, sources=None, collaborations=None):
+    def read_gloryduck_tstables(self, hdf5file, channels=None, sources=None, collaborations=None):
         
         # Opening hdf5 file.
         h5 = tables.open_file(hdf5file, 'r')
@@ -36,6 +36,7 @@ class gloryduckReader:
         print("The tables read from '{}' ({}):".format(h5.title,hdf5file))
         counter = 1
         tstables = {}
+        massvals = {}
         for channel in channels:
             if channel not in self.gd_channels:
                 raise ValueError("'{}' is not a valid channel!".format(channel))
@@ -49,16 +50,19 @@ class gloryduckReader:
                     if "/{}/{}/{}".format(channel,source,collaboration) in h5:
                         print("    {}) ('{}', '{}', '{}')".format(counter,channel,source,collaboration))
                         sigmavVsMassTable = eval("h5.root.{}.{}.{}.sigmavVsMass".format(channel,source,collaboration))
-                        print(sigmavVsMassTable)
-                        tstable = [x['ts'] for x in sigmavVsMassTable.iterrows()]
-                        massval = [x['mass'] for x in sigmavVsMassTable.iterrows()]
-                        print(massval)
-                        print(tstable)
+                        table = []
+                        mass = []
+                        for x in sigmavVsMassTable.iterrows():
+                            table.append(x['ts'])
+                            mass.append(x['mass'])
+                        table_info = "{}_{}_{}".format(channel,source,collaboration)
+                        tstables[table_info] = np.array(table)
+                        massvals[table_info] = np.array(mass)
                         counter+=1
          
         # Closing hdf5 file.
         h5.close()
-        return tstables
+        return tstables, massvals
 
 class cirelliReader:
     def __init__(self):

@@ -14,8 +14,11 @@ writer.convert_txts2hdf5(hdf5file,path2txts)
 
 reader = gloryduckReader()
 
-tstables = reader.read_gloryduck_tstables(hdf5file,['bb'],['Segue1'],['MAGIC'])
+#tstables, massvals = reader.read_gloryduck_tstables(hdf5file,['bb'],['Segue1'],['MAGIC'])
+tstables, massvals = reader.read_gloryduck_tstables(hdf5file)
 
+print(tstables)
+print(massvals)
 
 del writer
 del reader
