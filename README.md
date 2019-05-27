@@ -40,6 +40,26 @@ NOTE for developers: If you wish to fork/clone the respository and make changes 
 - PyYAML
 - Matplotlib
   
+  ## Run the Combiner
+  
+  Run LikelihoodCombiner from the command line:
+  
+  ```bash
+  LikelihoodCombiner_dir=</installation/path>/likelihood_combiner
+  python $LikelihoodCombiner_dir/likelihood_combiner/combiner.py $LikelihoodCombiner_dir/config/config.yml 
+  ```
+  
+  Alternatively, import LikelihoodCombiner as a module in a Python script:
+  
+  ```python
+  import yaml
+  from likelihood_combiner.combiner import run_combiner
+  
+  with open('</installation/path>/config/config.yml', 'r') as myconfig:
+      config = yaml.load(myconfig)
+  run_combiner(config)
+  ```
+  
 ## Uninstall LikelihoodCombiner
 
 ### Remove Anaconda Environment
