@@ -5,10 +5,9 @@ import yaml
 
 from likelihood_combiner.reader import gloryduckReader
 from likelihood_combiner.writer import gloryduckWriter
+from likelihood_combiner.gloryduck import gloryduckInfo
 
 def run_combiner(config):
-    
-    print(config)
     
     try:
         data_dir = config['Data']['data_directory']
@@ -16,18 +15,13 @@ def run_combiner(config):
             raise KeyError
     except KeyError:
         data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data"))
-    # Check if the data directory is existing
-    if not os.path.exists(data_dir):
-            raise ValueError("'{}' is not existing!".format(data_dir))
+
     try:
         hdf5file = config['Data']['hdf5_dataset']
         if hdf5file is None:
             raise KeyError
     except KeyError:
         hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/gloryduck_dataset.h5"))
-    # Check if the data directory is existing
-    if not os.path.exists(hdf5file):
-        raise ValueError("'{}' is not existing!".format(hdf5file))
 
     writer = gloryduckWriter()
 
@@ -36,13 +30,42 @@ def run_combiner(config):
     channels = config['Configuration']['channels']
     sources = config['Configuration']['sources']
     collaborations = config['Configuration']['collaborations']
+    
+    # Get information from the gloryduck class
+    gloryduck = gloryduckInfo()
+    if channels is None:
+        channels = np.array(gloryduck.channels)
+    if sources is None:
+        sources = np.array(gloryduck.sources)
+    if collaborations is None:
+        collaborations = np.array(gloryduck.collaborations)
 
     reader = gloryduckReader()
 
     tstables, massvals = reader.read_gloryduck_tstables(hdf5file,channels,sources,collaborations)
 
-    print(tstables)
-    print(massvals)
+    for channel in channels:
+        for source in sources:
+            # Checking that all ranges (mass and sigmav) and the J-Factor (first element of the mass arrays) are equal
+            mass_ref = None
+            sigmav_ref = None
+            for key,mass,sigmav in zip(massvals.keys(),massvals.values(),tstables.values()):
+                if channel in key and source in key:
+                    if mass_ref is None:
+                        mass_ref = mass
+                        mass_key_ref = key
+                    else:
+                        if mass[0] != mass_ref[0]:
+                            raise ValueError("The J-Factor value have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,mass_key_ref))
+                        if (mass[1:]!=mass_ref[1:]).any():
+                            raise ValueError("The mass values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,mass_key_ref))
+            
+                    if sigmav_ref is None:
+                        sigmav_ref = sigmav[0]
+                        sigmav_key_ref = key
+                    else:
+                        if (sigmav[0]!=sigmav_ref).any():
+                            raise ValueError("The sigma values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,sigmav_key_ref))
 
     del writer
     del reader

@@ -2,6 +2,6 @@ Data:
   data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
   hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/gloryduck_dataset.h5
 Configuration:
-  channels: ['bb','tautau']
+  channels: ['bb', 'tautau', 'mumu', 'WW', 'gammagamma', 'ZZ','ee']
   sources: ['Booetes1', 'Carina', 'ComaBerenices', 'Draco', 'Fornax', 'UrsaMajorII', 'UrsaMinor', 'Sagittarius', 'Sculptor', 'Segue1', 'Willman1']
   collaborations: ['MAGIC','HESS','FermiLAT','VERITAS','HAWC']
