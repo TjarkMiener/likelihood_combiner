@@ -2,10 +2,15 @@ import argparse
 import numpy as np
 import os
 import yaml
+#from scipy.optimize import curve_fit
+#from scipy.interpolate import interp1d
+
+import matplotlib.pyplot as plt
 
 from likelihood_combiner.reader import gloryduckReader
 from likelihood_combiner.writer import gloryduckWriter
 from likelihood_combiner.gloryduck import gloryduckInfo
+from likelihood_combiner.sensitivity import compute_sensitivity
 
 def run_combiner(config):
     
@@ -14,7 +19,7 @@ def run_combiner(config):
         if data_dir is None:
             raise KeyError
     except KeyError:
-        data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data"))
+        data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/"))
 
     try:
         hdf5file = config['Data']['hdf5_dataset']
@@ -22,6 +27,16 @@ def run_combiner(config):
             raise KeyError
     except KeyError:
         hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/gloryduck_dataset.h5"))
+
+    try:
+        output_dir = config['Output']['output_directory']
+        if output_dir is None:
+            raise KeyError
+    except KeyError:
+        output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../output/"))
+    # Create output directory if it doesn't exist already
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     writer = gloryduckWriter()
 
@@ -48,8 +63,8 @@ def run_combiner(config):
         for source in sources:
             # Checking that all ranges (mass and sigmav) and the J-Factor (first element of the mass arrays) are equal
             mass_ref = None
-            sigmav_ref = None
-            for key,mass,sigmav in zip(massvals.keys(),massvals.values(),tstables.values()):
+            tstable_ref = None
+            for key,mass,tstable in zip(massvals.keys(),massvals.values(),tstables.values()):
                 if channel in key and source in key:
                     if mass_ref is None:
                         mass_ref = mass
@@ -60,12 +75,14 @@ def run_combiner(config):
                         if (mass[1:]!=mass_ref[1:]).any():
                             raise ValueError("The mass values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,mass_key_ref))
             
-                    if sigmav_ref is None:
-                        sigmav_ref = sigmav[0]
-                        sigmav_key_ref = key
+                    if tstable_ref is None:
+                        tstable_ref = tstable[0]
+                        tstable_key_ref = key
                     else:
-                        if (sigmav[0]!=sigmav_ref).any():
-                            raise ValueError("The sigma values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,sigmav_key_ref))
+                        if (tstable[0]!=tstable_ref).any():
+                            raise ValueError("The sigma values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,tstable_key_ref))
+                    
+                    s = compute_sensitivity(tstable[0], tstable[1:])
 
     del writer
     del reader

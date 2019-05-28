@@ -8,7 +8,7 @@ class gloryduckInfo:
         self.collaborations = ['MAGIC','HESS','FermiLAT','VERITAS','HAWC']
 
         # List of sources:
-        self.sources = ['Booetes1', 'Carina', 'ComaBerenices', 'Draco', 'Fornax', 'UrsaMajorII', 'UrsaMinor', 'Sagittarius', 'Sculptor', 'Segue1', 'Willman1']
+        self.sources = ['mock', 'Booetes1', 'Carina', 'ComaBerenices', 'Draco', 'Fornax', 'UrsaMajorII', 'UrsaMinor', 'Sagittarius', 'Sculptor', 'Segue1', 'Willman1']
 
         # List of annihilation channels:
         self.channels = ['bb', 'tautau', 'mumu', 'WW', 'gammagamma', 'ZZ','ee']
