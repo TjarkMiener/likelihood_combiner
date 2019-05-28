@@ -2,9 +2,6 @@ import argparse
 import numpy as np
 import os
 import yaml
-#from scipy.optimize import curve_fit
-#from scipy.interpolate import interp1d
-
 import matplotlib.pyplot as plt
 
 from likelihood_combiner.reader import gloryduckReader
@@ -61,11 +58,11 @@ def run_combiner(config):
 
     for channel in channels:
         for source in sources:
-            # Checking that all ranges (mass and sigmav) and the J-Factor (first element of the mass arrays) are equal
             mass_ref = None
             tstable_ref = None
             for key,mass,tstable in zip(massvals.keys(),massvals.values(),tstables.values()):
                 if channel in key and source in key:
+                    # Checking that all ranges (mass and sigmav) and the J-Factor (first element of the mass arrays) are equal
                     if mass_ref is None:
                         mass_ref = mass
                         mass_key_ref = key
@@ -82,8 +79,8 @@ def run_combiner(config):
                         if (tstable[0]!=tstable_ref).any():
                             raise ValueError("The sigma values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,tstable_key_ref))
                     
-                    s = compute_sensitivity(tstable[0], tstable[1:])
-
+                    limits = compute_sensitivity(tstable[0], tstable[1:])
+                    print(limits)
     del writer
     del reader
 

@@ -11,5 +11,6 @@ def compute_sensitivity(sigmav, tstable, confidence_level = 2.71):
                 break
         if up_pos != min_ind:
             limit = (confidence_level - tstable[imass][up_pos]) * (sigmav[up_pos-1] - sigmav[up_pos]) / (tstable[imass][up_pos-1] - tstable[imass][up_pos]) + sigmav[up_pos]
+            limit -= sigmav[min_ind]
         limits.append(limit)
     return np.array(limits)
