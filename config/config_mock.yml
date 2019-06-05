@@ -1,5 +1,6 @@
 Data:
   data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
+  overwrite_hdf5file: true
   hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/gloryduck_mock_dataset.h5
 Configuration:
   channels: ['bb']
