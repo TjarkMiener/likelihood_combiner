@@ -8,4 +8,4 @@ Configuration:
   collaborations: ['MAGIC','HESS','FermiLAT','VERITAS','HAWC']
 Output:
   output_directory: /Users/tmiener/Documents/likelihood_combiner/output
-  save_plots_of_sources: True
+  save_plots_of_sources: true

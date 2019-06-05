@@ -57,10 +57,15 @@ def run_combiner(config):
     tstables, massvals = reader.read_gloryduck_tstables(hdf5file,channels,sources,collaborations)
     del reader
 
+    print("The limits for the selected configuration:")
     for channel in channels:
+        # Combine ts values for all dSphs
+        combined_all_ts = None
+        sigmav = None
         for source in sources:
             mass_ref = None
             tstable_ref = None
+            # Combine ts values for each dSphs
             combined_ts = None
             for key,mass,tstable in zip(massvals.keys(),massvals.values(),tstables.values()):
                 if channel in key and source in key:
@@ -89,10 +94,18 @@ def run_combiner(config):
 
                     # Calculating the limits
                     limits = compute_sensitivity(sigmav, tstable[1:])
-                    print(limits)
+                    print("'{}': {}".format(key,limits))
 
-            combined_limit = compute_sensitivity(sigmav, combined_ts)
-            print(combined_limit)
+            if combined_all_ts is None:
+                combined_all_ts = np.zeros((combined_ts.shape[0], combined_ts.shape[1]))
+            if combined_ts is not None:
+                for i in np.arange(combined_ts.shape[0]):
+                    # Combining the likelihood values
+                    combined_all_ts[i] += combined_ts[i]
+                combined_limit = compute_sensitivity(sigmav, combined_ts)
+                print("Combined {}: {}".format(source,combined_limit))
+        combined_all_limit = compute_sensitivity(sigmav, combined_all_ts)
+        print("All dSphs for {}: {}".format(channel,combined_all_limit))
 
 if __name__ == "__main__":
     

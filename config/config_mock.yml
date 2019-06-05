@@ -3,9 +3,9 @@ Data:
   overwrite_hdf5file: true
   hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/gloryduck_mock_dataset.h5
 Configuration:
-  channels: ['bb']
-  sources: ['mock']
+  channels: ['bb', 'tautau']
+  sources: ['mock','dummy']
   collaborations: ['MAGIC','HESS','FermiLAT','VERITAS']
 Output:
   output_directory: /Users/tmiener/Documents/likelihood_combiner/output
-  save_plots_of_sources: True
+  save_plots_of_sources: true
