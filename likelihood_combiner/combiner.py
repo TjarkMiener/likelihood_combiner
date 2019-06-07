@@ -59,9 +59,11 @@ def run_combiner(config):
 
     print("The limits for the selected configuration:")
     for channel in channels:
+        fig, ax = plt.subplots()
         # Combine ts values for all dSphs
         combined_all_ts = None
         sigmav = None
+        mass_array = None
         for source in sources:
             mass_ref = None
             tstable_ref = None
@@ -73,6 +75,7 @@ def run_combiner(config):
                     if mass_ref is None:
                         mass_ref = mass
                         mass_key_ref = key
+                        mass_array = mass[1:]
                     else:
                         if mass[0] != mass_ref[0]:
                             print("Warning: Discrepancy in the J-Factor value of '{}.txt' and '{}.txt'! Make sure each collabration took the right J-Factor value from the GS table.".format(key,mass_key_ref))
@@ -103,9 +106,24 @@ def run_combiner(config):
                     # Combining the likelihood values
                     combined_all_ts[i] += combined_ts[i]
                 combined_limit = compute_sensitivity(sigmav, combined_ts)
+                ax.plot(mass_array, combined_limit, label='{} limit'.format(source))
                 print("Combined {}: {}".format(source,combined_limit))
         combined_all_limit = compute_sensitivity(sigmav, combined_all_ts)
         print("All dSphs for {}: {}".format(channel,combined_all_limit))
+        print(mass_array)
+        ax.plot(mass_array, combined_all_limit, label='Combined limit')
+        ax.set_xscale('log')
+        ax.set_xbound(lower=np.min(mass_array),upper=np.max(mass_array))
+        ax.set_xlabel(r'$m_{DM} \: [ \, GeV \,]$')
+        ax.set_yscale('log')
+        ax.set_ylabel(r'$95\% \: CL \: \langle\sigma v\rangle^{UL} \: [ \, cm^{3}/s \,]$')
+        ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
+        ax.text(0.4, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.text(0.9, 0.1, channel, fontsize=20,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.legend(loc='upper right')
+        ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
+        plt.savefig('{}/{}_alldSph_withsources.pdf'.format(output_dir,channel))
+        plt.close()
 
 if __name__ == "__main__":
     
