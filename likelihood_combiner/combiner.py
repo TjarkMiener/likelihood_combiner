@@ -57,73 +57,130 @@ def run_combiner(config):
     tstables, massvals = reader.read_gloryduck_tstables(hdf5file,channels,sources,collaborations)
     del reader
 
-    print("The limits for the selected configuration:")
+    print("Combining limits for the selected configuration:")
     for channel in channels:
-        fig, ax = plt.subplots()
-        # Combine ts values for all dSphs
-        combined_all_ts = None
         sigmav = None
-        mass_array = None
+        mass_axis = []
+        # Combine ts values for each dSphs
+        combined_sources_ts = {}
         for source in sources:
-            mass_ref = None
             tstable_ref = None
-            # Combine ts values for each dSphs
-            combined_ts = None
             for key,mass,tstable in zip(massvals.keys(),massvals.values(),tstables.values()):
                 if channel in key and source in key:
                     # Checking that all ranges (mass and sigmav) and the J-Factor (first element of the mass arrays) are equal
-                    if mass_ref is None:
-                        mass_ref = mass
-                        mass_key_ref = key
-                        mass_array = mass[1:]
-                    else:
-                        if mass[0] != mass_ref[0]:
-                            print("Warning: Discrepancy in the J-Factor value of '{}.txt' and '{}.txt'! Make sure each collabration took the right J-Factor value from the GS table.".format(key,mass_key_ref))
-                        if (mass[1:]!=mass_ref[1:]).any():
-                            raise ValueError("The mass values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,mass_key_ref))
-            
                     if tstable_ref is None:
-                        tstable_ref = tstable[0]
+                        tstable_ref = sigmav = tstable[0]
                         tstable_key_ref = key
                     else:
                         if (tstable[0]!=tstable_ref).any():
                             raise ValueError("The sigma values have to be equal! Discrepancy in '{}.txt' and '{}.txt'".format(key,tstable_key_ref))
-                    sigmav = tstable[0]
-                    if combined_ts is None:
-                        combined_ts = np.zeros((tstable.shape[0]-1, tstable.shape[1]))
-                    for i in np.arange(tstable.shape[0]-1):
-                        # Combining the likelihood values
-                        combined_ts[i] += tstable[i+1]
+                    for i,m in enumerate(mass[1:]):
+                        if m not in mass_axis:
+                            mass_axis.append(m)
+                        if source+"_"+str(m) in combined_sources_ts:
+                            combined_sources_ts[source+"_"+str(m)] += tstable[i+1][::-1]
+                        else:
+                            combined_sources_ts[source+"_"+str(m)] = tstable[i+1][::-1]
+        sigmav = sigmav[::-1]
+        combined_sources_dict = compute_sensitivity(sigmav, combined_sources_ts)
+        combined_sources = []
+        combined_sources_masses = []
+        combined_sources_limits = []
+        for source in sources:
+            source_mass = []
+            source_limit = []
+            for mass,limit in combined_sources_dict.items():
+                if source in mass:
+                    source_mass.append(float(mass[mass.find("_")+1:]))
+                    source_limit.append(limit)
+            combined_sources.append(source)
+            combined_sources_masses.append(source_mass)
+            combined_sources_limits.append(source_limit)
+        combined_sources = np.array(combined_sources)
+        combined_sources_masses = np.array(combined_sources_masses)
+        combined_sources_limits = np.array(combined_sources_limits)
+    
+        # Combine ts values for each collaboration
+        combined_collaborations_ts = {}
+        for collaboration in collaborations:
+            for key,mass,tstable in zip(massvals.keys(),massvals.values(),tstables.values()):
+                if channel in key and collaboration in key:
+                    for i,m in enumerate(mass[1:]):
+                        if m not in mass_axis:
+                            mass_axis.append(m)
+                        if collaboration+"_"+str(m) in combined_collaborations_ts:
+                            combined_collaborations_ts[collaboration+"_"+str(m)] += tstable[i+1][::-1]
+                        else:
+                            combined_collaborations_ts[collaboration+"_"+str(m)] = tstable[i+1][::-1]
 
-                    # Calculating the limits
-                    limits = compute_sensitivity(sigmav, tstable[1:])
-                    print("'{}': {}".format(key,limits))
+        combined_collaborations_dict = compute_sensitivity(sigmav, combined_collaborations_ts)
+        combined_collaborations = []
+        combined_collaborations_masses = []
+        combined_collaborations_limits = []
+        for collaboration in collaborations:
+            collaboration_mass = []
+            collaboration_limit = []
+            for mass,limit in combined_collaborations_dict.items():
+                if collaboration in mass:
+                    collaboration_mass.append(float(mass[mass.find("_")+1:]))
+                    collaboration_limit.append(limit)
+            combined_collaborations.append(collaboration)
+            combined_collaborations_masses.append(collaboration_mass)
+            combined_collaborations_limits.append(collaboration_limit)
+        combined_collaborations = np.array(combined_collaborations)
+        combined_collaborations_masses = np.array(combined_collaborations_masses)
+        combined_collaborations_limits = np.array(combined_collaborations_limits)
 
-            if combined_all_ts is None:
-                combined_all_ts = np.zeros((combined_ts.shape[0], combined_ts.shape[1]))
-            if combined_ts is not None:
-                for i in np.arange(combined_ts.shape[0]):
-                    # Combining the likelihood values
-                    combined_all_ts[i] += combined_ts[i]
-                combined_limit = compute_sensitivity(sigmav, combined_ts)
-                ax.plot(mass_array, combined_limit, label='{} limit'.format(source))
-                print("Combined {}: {}".format(source,combined_limit))
-        combined_all_limit = compute_sensitivity(sigmav, combined_all_ts)
-        print("All dSphs for {}: {}".format(channel,combined_all_limit))
-        print(mass_array)
-        ax.plot(mass_array, combined_all_limit, label='Combined limit')
+        # Combine ts values for all dSphs
+        combined_all_dSphs_ts = {}
+        for m in mass_axis:
+            for comb_source,tstable in combined_collaborations_ts.items():
+                if str(m) in comb_source:
+                    if str(m) in combined_all_dSphs_ts:
+                        combined_all_dSphs_ts[str(m)] += tstable
+                    else:
+                        combined_all_dSphs_ts[str(m)] = tstable
+        combined_all_dSphs_dict = compute_sensitivity(sigmav, combined_all_dSphs_ts)
+        combined_all_dSphs_masses = [ float(m) for m in combined_all_dSphs_dict ]
+        combined_all_dSphs_limits = [ l for l in combined_all_dSphs_dict.values() ]
+
+        # Plotting
+        # Combined with sources
+        fig, ax = plt.subplots()
+        for i in np.arange(combined_sources_masses.shape[0]):
+            ax.plot(combined_sources_masses[i],combined_sources_limits[i],label='{} limit'.format(combined_sources[i]))
+        ax.plot(combined_all_dSphs_masses, combined_all_dSphs_limits, label='Combined limit')
         ax.set_xscale('log')
-        ax.set_xbound(lower=np.min(mass_array),upper=np.max(mass_array))
-        ax.set_xlabel(r'$m_{DM} \: [ \, GeV \,]$')
+        ax.set_xbound(lower=np.min(combined_all_dSphs_masses),upper=np.max(combined_all_dSphs_masses))
+        ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
         ax.set_yscale('log')
-        ax.set_ylabel(r'$95\% \: CL \: \langle\sigma v\rangle^{UL} \: [ \, cm^{3}/s \,]$')
+        ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
         ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
         ax.text(0.4, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-        ax.text(0.9, 0.1, channel, fontsize=20,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.text(0.85, 0.1, r'$\chi\chi \to ${}'.format(channel), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
         ax.legend(loc='upper right')
         ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
         plt.savefig('{}/{}_alldSph_withsources.pdf'.format(output_dir,channel))
-        plt.close()
+        print("Saved plot in {}/{}_alldSph_withsources.pdf".format(output_dir,channel))
+        ax.clear()
+
+        fig, ax = plt.subplots()
+        for i in np.arange(combined_collaborations_masses.shape[0]):
+            ax.plot(combined_collaborations_masses[i],combined_collaborations_limits[i],label='{} limit'.format(combined_collaborations[i]))
+        ax.plot(combined_all_dSphs_masses, combined_all_dSphs_limits, label='Combined limit')
+        ax.set_xscale('log')
+        ax.set_xbound(lower=np.min(combined_all_dSphs_masses),upper=np.max(combined_all_dSphs_masses))
+        ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+        ax.set_yscale('log')
+        ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
+        ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
+        ax.text(0.4, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.text(0.85, 0.1, r'$\chi\chi \to ${}'.format(channel), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.legend(loc='upper right')
+        ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
+        plt.savefig('{}/{}_alldSph_withcollaborations.pdf'.format(output_dir,channel))
+        print("Saved plot in {}/{}_alldSph_withcollaborations.pdf".format(output_dir,channel))
+        ax.clear()
 
 if __name__ == "__main__":
     
