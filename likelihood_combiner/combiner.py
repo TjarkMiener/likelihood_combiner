@@ -52,6 +52,7 @@ def run_combiner(config):
         sources = np.array(gloryduck.sources)
     if collaborations is None:
         collaborations = np.array(gloryduck.collaborations)
+    channels_LaTex = gloryduck.channels_LaTex
 
     reader = gloryduckReader()
     tstables, massvals = reader.read_gloryduck_tstables(hdf5file,channels,sources,collaborations)
@@ -157,7 +158,7 @@ def run_combiner(config):
         ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
         ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
         ax.text(0.4, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-        ax.text(0.85, 0.1, r'$\chi\chi \to ${}'.format(channel), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
         ax.legend(loc='upper right')
         ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
         plt.savefig('{}/{}_alldSph_withsources.pdf'.format(output_dir,channel))
@@ -175,7 +176,7 @@ def run_combiner(config):
         ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
         ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
         ax.text(0.4, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-        ax.text(0.85, 0.1, r'$\chi\chi \to ${}'.format(channel), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+        ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
         ax.legend(loc='upper right')
         ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
         plt.savefig('{}/{}_alldSph_withcollaborations.pdf'.format(output_dir,channel))
