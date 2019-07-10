@@ -5,9 +5,6 @@ def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
     # We need to reverse the sigmav array, because x values in CubicSpline() must be in strictly increasing order.
     limits = {}
     for key, tstable in ts_dict.items():
-        print(key)
-        print(tstable)
-        print(np.all(tstable==0))
         if np.all(tstable==0):
             limits[key] = np.nan
         else:
