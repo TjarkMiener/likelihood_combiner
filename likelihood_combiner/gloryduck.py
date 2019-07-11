@@ -14,7 +14,7 @@ class gloryduckInfo:
         self.channels = ['bb', 'tautau', 'mumu', 'WW', 'gammagamma', 'ZZ','ee']
 
         # Corresponding LaTex notation
-        self.channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\tau^{+}\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'ZZ':'Z^{+}Z^{-}', 'ee':'e^{+}e^{-}'}
+        self.channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'ZZ':'ZZ', 'ee':'e^{+}e^{-}'}
     
         #######################################################
         #                     Thank you!                      #
