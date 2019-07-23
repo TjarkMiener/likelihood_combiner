@@ -22,7 +22,7 @@ class gloryduckWriter:
         h5 = tables.open_file(hdf5file, mode="w", title="Gloryduck database")
 
         # Reading the .txt files in the folder.
-        files = np.array([x for x in os.listdir(path2txts) if x.endswith(".txt")])
+        files = np.array([x for x in os.listdir(path2txts) if x.endswith(".txt") and x not in "Jfactor_Geringer-SamethTable.txt"])
         print("The files written in '{}' ({}):".format(h5.title,hdf5file))
 
         for counter,file in enumerate(files):
@@ -81,10 +81,3 @@ class gloryduckWriter:
         # Closing hdf5 file.
         h5.close()
         return
-
-
-class cirelliWriter:
-
-    def __init__(self):
-        """Constructor"""
-

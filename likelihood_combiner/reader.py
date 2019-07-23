@@ -62,6 +62,43 @@ class gloryduckReader:
         h5.close()
         return tstables, massvals
 
+
+class JFactor_Reader:
+    def __init__(self):
+        """Constructor"""
+        # Get information from the gloryduck class
+        gloryduck = gloryduckInfo()
+        # List of valid collaborations:
+        self.gd_collaborations = gloryduck.collaborations
+        # List of valid sources:
+        self.gd_sources = gloryduck.sources
+        
+        # Define the angular separation from dwarf center:
+        self.angular_separation = 0.53086117
+    
+    def read_JFactor(self, JFactor_file, sources=None):
+        if sources is None:
+            sources = self.gd_sources
+        sources = np.array(sources)
+        
+        sources_logJ = {}
+        sources_DlogJ = {}
+        angle = self.angular_separation
+        for source in sources:
+            # Opening txt file.
+            file = open(JFactor_file, "r")
+            for i,line in enumerate(file):
+                if i > 41:
+                    # The source in the GS file for this line
+                    source_GS = line[:18].replace(" ", "")
+                    line = line[18:].split()
+                    if source == source_GS and float(line[0]) == angle:
+                        sources_logJ[source] = float(line[3])
+                        sources_DlogJ[source] = float(line[3]) - float(line[2])
+                        file.close()
+                        break
+        return sources_logJ,sources_DlogJ
+
 class cirelliReader:
     def __init__(self):
         """Constructor"""

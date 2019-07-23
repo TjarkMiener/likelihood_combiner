@@ -29,3 +29,30 @@ def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
                     break
             limits[key] = limit
     return limits
+
+
+def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict):
+    ts_dict_Jnuisance = {}
+    for key, tstable in ts_dict.items():
+        if np.all(tstable==0):
+            ts_dict_Jnuisance[key] = tstable
+        else:
+            source = key.split("_")
+            DlogJ = DlogJ_dict[source[0]]
+            maxdev = 6. * DlogJ
+            profiling_steps = 10000
+            l = np.linspace(-maxdev, maxdev, num=profiling_steps, endpoint=True)
+            lLkl = -2.*np.log((np.exp(-np.power(l,2)/(2.*np.power(DlogJ,2)))/(np.sqrt(2.*np.pi)*DlogJ*np.log(10))))
+            cSpline = CubicSpline(sigmav, tstable)
+            min_ind = np.min(np.where(tstable == np.min(tstable)))
+            ts_val = []
+            for sv in sigmav:
+                g = sv/np.power(10,l)
+                gSpline = cSpline(g)
+                gLkl = np.where(((g>1e-28) & (g<1e-18)), gSpline,  np.nan)
+                totLkl = gLkl + lLkl
+                ts_val.append(np.nanmin(totLkl))
+            ts_val= np.array(ts_val)
+            dis = ts_val[min_ind] - tstable[min_ind]
+            ts_dict_Jnuisance[key] = ts_val - dis
+    return ts_dict_Jnuisance
