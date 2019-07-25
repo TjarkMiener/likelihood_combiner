@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from likelihood_combiner.reader import gloryduckReader,JFactor_Reader
 from likelihood_combiner.writer import gloryduckWriter
 from likelihood_combiner.gloryduck import gloryduckInfo
-from likelihood_combiner.utils import compute_sensitivity,compute_Jnuisance
+from likelihood_combiner.utils import compute_sensitivity,compute_Jnuisance,plot_sigmavULs
 
 def run_combiner(config):
     
@@ -217,8 +217,8 @@ def run_combiner(config):
                         combined_sources_ts_Jnuisance[str(m)] = combined_source_ts_Jnuisance[source+"_"+str(m)]
                             
         h5 = tables.open_file(hdf5file, 'a')
-        if "/{}/Combination".format(channel) not in h5:
-            h5.create_group(eval("h5.root.{}".format(channel)), "Combination", "Further information about the combination of sources ({}).".format(','.join(combined_sources)))
+        if "/{}/Combination_ALL".format(channel) not in h5:
+            h5.create_group(eval("h5.root.{}".format(channel)), "Combination_ALL", "Further information about the combination of sources ({}).".format(','.join(combined_sources)))
         
         columns_dict={"mass":tables.Float32Col(),
                       "ts":tables.Float32Col(shape=sigmav_shape),
@@ -227,11 +227,11 @@ def run_combiner(config):
 
         # Creating the table mass vs sigmav for each source and for each channel.
         table_name = "sigmavVsMass"
-        table = h5.create_table(eval("h5.root.{}.Combination".format(channel)),table_name,description,"Table of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
+        table = h5.create_table(eval("h5.root.{}.Combination_ALL".format(channel)),table_name,description,"Table of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
         
         # Filling the data of the txt file into the table of the hdf5 file.
         for key in combined_sources_ts.keys():
-            table = eval("h5.root.{}.Combination.{}".format(channel,table_name))
+            table = eval("h5.root.{}.Combination_ALL.{}".format(channel,table_name))
             row = table.row
             row['mass']  = key
             # The first element of the ts array (mass value) will be ignored, since it's in the mass column.
@@ -253,10 +253,10 @@ def run_combiner(config):
                       "sigmav_UL_Jnuisance":tables.Float32Col()}
         description = type("description", (tables.IsDescription,), columns_dict)
         table_name = "ULsigmavVsMass"
-        table = h5.create_table(eval("h5.root.{}.Combination".format(channel)),table_name,description,"95% CL sigmav UL vs mass of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
+        table = h5.create_table(eval("h5.root.{}.Combination_ALL".format(channel)),table_name,description,"95% CL sigmav UL vs mass of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
         # Filling the sigmav UL into the table of the hdf5 file.
         for key in combined_sources_sensitivity.keys():
-            table = eval("h5.root.{}.Combination.{}".format(channel,table_name))
+            table = eval("h5.root.{}.Combination_ALL.{}".format(channel,table_name))
             row = table.row
             row['mass']  = key
             # The first element of the ts array (mass value) will be ignored, since it's in the mass column.
@@ -270,125 +270,6 @@ def run_combiner(config):
             table.flush()
         # Closing hdf5 file.
         h5.close()
-   
-
-        if config['Data']['J_nuisance']:
-            combined_source_ts_Jnuisance = compute_Jnuisance(sigmav_rev, combined_source_ts, sources_DlogJ)
-            combined_sources_dict = compute_sensitivity(sigmav_rev, combined_source_ts_Jnuisance)
-        else:
-            combined_sources_dict = compute_sensitivity(sigmav_rev, combined_source_ts)
-        combined_sources = []
-        combined_sources_masses = []
-        combined_sources_limits = []
-        for source in sources:
-            source_mass = []
-            source_limit = []
-            for mass,limit in combined_sources_dict.items():
-                if source in mass:
-                    source_mass.append(float(mass[mass.find("_")+1:]))
-                    source_limit.append(limit)
-            combined_sources.append(source)
-            combined_sources_masses.append(source_mass)
-            combined_sources_limits.append(source_limit)
-        combined_sources = np.array(combined_sources)
-        combined_sources_masses = np.array(combined_sources_masses)
-        combined_sources_limits = np.array(combined_sources_limits)
-    
-        # Combine ts values for each collaboration
-        combined_collaborations_ts = {}
-        for collaboration in collaborations:
-            for key,mass,tstable in zip(massvals.keys(),massvals.values(),tstables.values()):
-                if channel in key and collaboration in key:
-                    for i,m in enumerate(mass[1:]):
-                        if m not in mass_axis:
-                            mass_axis.append(m)
-                        if collaboration+"_"+str(m) in combined_collaborations_ts:
-                            combined_collaborations_ts[collaboration+"_"+str(m)] += tstable[i+1][::-1]
-                        else:
-                            combined_collaborations_ts[collaboration+"_"+str(m)] = tstable[i+1][::-1]
-
-        combined_collaborations_dict = compute_sensitivity(sigmav_rev, combined_collaborations_ts)
-        combined_collaborations = []
-        combined_collaborations_masses = []
-        combined_collaborations_limits = []
-        for collaboration in collaborations:
-            collaboration_mass = []
-            collaboration_limit = []
-            for mass,limit in combined_collaborations_dict.items():
-                if collaboration in mass:
-                    collaboration_mass.append(float(mass[mass.find("_")+1:]))
-                    collaboration_limit.append(limit)
-            combined_collaborations.append(collaboration)
-            combined_collaborations_masses.append(collaboration_mass)
-            combined_collaborations_limits.append(collaboration_limit)
-        combined_collaborations = np.array(combined_collaborations)
-        combined_collaborations_masses = np.array(combined_collaborations_masses)
-        combined_collaborations_limits = np.array(combined_collaborations_limits)
-
-        # Combine ts values for all dSphs
-        combined_all_dSphs_ts = {}
-        for m in mass_axis:
-            for comb_source,tstable in combined_collaborations_ts.items():
-                if str(m) in comb_source:
-                    if str(m) in combined_all_dSphs_ts:
-                        combined_all_dSphs_ts[str(m)] += tstable
-                    else:
-                        combined_all_dSphs_ts[str(m)] = tstable
-        combined_all_dSphs_dict = compute_sensitivity(sigmav_rev, combined_all_dSphs_ts)
-        combined_all_dSphs_masses = [ float(m) for m in combined_all_dSphs_dict ]
-        combined_all_dSphs_limits = [ l for l in combined_all_dSphs_dict.values() ]
-
-        # Plotting
-        # Combined with sources
-        fig, ax = plt.subplots()
-        for i in np.arange(combined_sources_masses.shape[0]):
-            ax.plot(combined_sources_masses[i],combined_sources_limits[i],label='{} limit'.format(combined_sources[i]))
-        ax.plot(combined_all_dSphs_masses, combined_all_dSphs_limits, label='Combined limit')
-        ax.set_xscale('log')
-        ax.set_xbound(lower=np.min(combined_all_dSphs_masses),upper=np.max(combined_all_dSphs_masses))
-        ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
-        ax.set_yscale('log')
-        ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
-        ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
-        ax.text(0.4, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-        ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-        # Shrink current axis by 20%
-        box = ax.get_position()
-        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-
-        # Put a legend to the right of the current axis
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
-        #fig.tight_layout()
-        #ax.legend(loc='upper right')
-        ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
-        plt.savefig('{}/{}_alldSph_withsources.pdf'.format(output_dir,channel))
-        print("Saved plot in {}/{}_alldSph_withsources.pdf".format(output_dir,channel))
-        ax.clear()
-
-        fig, ax = plt.subplots()
-        for i in np.arange(combined_collaborations_masses.shape[0]):
-            ax.plot(combined_collaborations_masses[i],combined_collaborations_limits[i],label='{} limit'.format(combined_collaborations[i]))
-        ax.plot(combined_all_dSphs_masses, combined_all_dSphs_limits, label='Combined limit')
-        ax.set_xscale('log')
-        ax.set_xbound(lower=np.min(combined_all_dSphs_masses),upper=np.max(combined_all_dSphs_masses))
-        ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
-        ax.set_yscale('log')
-        ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
-        ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
-        ax.text(0.4, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-        ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-        # Shrink current axis by 20%
-        box = ax.get_position()
-        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-
-        # Put a legend to the right of the current axis
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
-        #fig.tight_layout()
-        #ax.legend(loc='upper right')
-        ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
-        plt.savefig('{}/{}_alldSph_withcollaborations.pdf'.format(output_dir,channel))
-        print("Saved plot in {}/{}_alldSph_withcollaborations.pdf".format(output_dir,channel))
-        ax.clear()
 
 if __name__ == "__main__":
     
@@ -403,4 +284,7 @@ if __name__ == "__main__":
     with open(args.config_file, 'r') as config_file:
         config = yaml.load(config_file)
 
-    run_combiner(config)
+    if not config['Output']['only_plotting']:
+        run_combiner(config)
+
+    plot_sigmavULs(config)

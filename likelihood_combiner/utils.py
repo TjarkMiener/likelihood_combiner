@@ -1,5 +1,10 @@
 import numpy as np
+import os
+import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
+
+from likelihood_combiner.reader import gloryduckReader
+from likelihood_combiner.gloryduck import gloryduckInfo
 
 def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
     # We need to reverse the sigmav array, because x values in CubicSpline() must be in strictly increasing order.
@@ -56,3 +61,114 @@ def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict):
             dis = ts_val[min_ind] - tstable[min_ind]
             ts_dict_Jnuisance[key] = ts_val - dis
     return ts_dict_Jnuisance
+
+def plot_sigmavULs(config):
+    
+    try:
+        hdf5file = config['Data']['hdf5_dataset']
+        if hdf5file is None:
+            raise KeyError
+    except KeyError:
+        hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/gloryduck_dataset.h5"))
+    
+    try:
+        output_dir = config['Output']['output_directory']
+        if output_dir is None:
+            raise KeyError
+    except KeyError:
+        output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../output/"))
+    # Create output directory if it doesn't exist already
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    channels = config['Configuration']['channels']
+    sources = config['Configuration']['sources']
+    collaborations = config['Configuration']['collaborations']
+
+    # Get information from the gloryduck class
+    gloryduck = gloryduckInfo()
+    if channels is None:
+        channels = np.array(gloryduck.channels)
+    if sources is None:
+        sources = np.array(gloryduck.sources)
+    if collaborations is None:
+        collaborations = np.array(gloryduck.collaborations)
+    channels_LaTex = gloryduck.channels_LaTex
+    
+    gd_reader = gloryduckReader()
+    sigmavULs, sigmavULs_Jnuisance, massvals = gd_reader.read_gloryduck_sigmavULs(hdf5file,channels,sources,collaborations)
+    del gd_reader
+
+    for channel in channels:
+        for ul_dict in [sigmavULs,sigmavULs_Jnuisance]:
+            if ul_dict is sigmavULs_Jnuisance and not config['Data']['J_nuisance']:
+                continue
+            fig, ax = plt.subplots()
+            for source in sources:
+                if channel+"_"+source+"_Combination" in ul_dict:
+                    ax.plot(massvals[channel+"_"+source+"_Combination"],ul_dict[channel+"_"+source+"_Combination"],label='{} limit'.format(source))
+            ax.plot(massvals[channel+"_Combination_ALL"], ul_dict[channel+"_Combination_ALL"], label='Combined limit')
+            ax.set_xscale('log')
+            ax.set_xbound(lower=np.min(massvals[channel+"_Combination_ALL"]),upper=np.max(massvals[channel+"_Combination_ALL"]))
+            ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+            ax.set_yscale('log')
+            ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
+            if ul_dict is sigmavULs:
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
+            else:
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass (J nuisance)')
+
+            ax.text(0.2, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+            ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center',verticalalignment='center', transform=ax.transAxes)
+            # Shrink current axis by 20%
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        
+            # Put a legend to the right of the current axis
+            ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
+            #fig.tight_layout()
+            #ax.legend(loc='upper right')
+            ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
+            if ul_dict is sigmavULs:
+                plt.savefig('{}/{}_alldSph_withsources.pdf'.format(output_dir,channel))
+                print("Saved plot in {}/{}_alldSph_withsources.pdf".format(output_dir,channel))
+                plt.close()
+            else:
+                plt.savefig('{}/{}_alldSph_withsources_Jnuisance.pdf'.format(output_dir,channel))
+                print("Saved plot in {}/{}_alldSph_withsources_Jnuisance.pdf".format(output_dir,channel))
+                plt.close()
+            ax.clear()
+        if config['Output']['save_plots_of_sources']:
+            for source in sources:
+                if channel+"_"+source+"_Combination" not in sigmavULs:
+                    continue
+                fig, ax = plt.subplots()
+                for collaboration in collaborations:
+                    if channel+"_"+source+"_"+collaboration in sigmavULs:
+                        ax.plot(massvals[channel+"_"+source+"_"+collaboration],sigmavULs[channel+"_"+source+"_"+collaboration],label='{} limit'.format(collaboration))
+                        if config['Data']['J_nuisance']:
+                            ax.plot(massvals[channel+"_"+source+"_"+collaboration],sigmavULs_Jnuisance[channel+"_"+source+"_"+collaboration], linestyle='--',label='{} limit (Jnui)'.format(collaboration))
+                ax.set_xscale('log')
+                ax.set_xbound(lower=np.min(massvals[channel+"_"+source+"_Combination"]),upper=np.max(massvals[channel+"_"+source+"_Combination"]))
+                ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+                ax.set_yscale('log')
+                ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
+                ax.text(0.2, 0.85, '{}'.format(source), fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+                ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center',verticalalignment='center', transform=ax.transAxes)
+                # Shrink current axis by 20%
+                box = ax.get_position()
+                ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+                # Put a legend to the right of the current axis
+                ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
+                #fig.tight_layout()
+                #ax.legend(loc='upper right')
+                ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
+                plt.savefig('{}/{}_{}.pdf'.format(output_dir,channel,source))
+                print("Saved plot in {}/{}_{}.pdf".format(output_dir,channel,source))
+                plt.close()
+                ax.clear()
+            
+    return
+    
