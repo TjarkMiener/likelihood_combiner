@@ -36,10 +36,9 @@ def run_combiner(config):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    if config['Data']['overwrite_hdf5file']:
-        gd_writer = gloryduckWriter()
-        gd_writer.convert_txts2hdf5(hdf5file,data_dir)
-        del gd_writer
+    gd_writer = gloryduckWriter()
+    gd_writer.convert_txts2hdf5(hdf5file,data_dir)
+    del gd_writer
 
     channels = config['Configuration']['channels']
     sources = config['Configuration']['sources']

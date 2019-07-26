@@ -1,6 +1,5 @@
 Data:
   data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
-  overwrite_hdf5file: true
   hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/gloryduck_dataset.h5
   J_nuisance: true
   JFactor_table: /Users/tmiener/Documents/likelihood_combiner/data/Jfactor_Geringer-SamethTable.txt
