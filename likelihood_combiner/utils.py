@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 
-from likelihood_combiner.reader import gloryduckReader
+from likelihood_combiner.reader import gloryduckReader,JFactor_Reader
 from likelihood_combiner.gloryduck import gloryduckInfo
 
 def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
@@ -99,6 +99,18 @@ def plot_sigmavULs(config):
     sigmavULs, sigmavULs_Jnuisance, massvals = gd_reader.read_gloryduck_sigmavULs(hdf5file,channels,sources,collaborations)
     del gd_reader
 
+    try:
+        JFactor_file = config['Data']['JFactor_table']
+        if JFactor_file is None:
+            raise KeyError
+    except KeyError:
+        JFactor_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/Jfactor_Geringer-SamethTable.txt"))
+
+    if config['Data']['J_nuisance']:
+        Jfactor_reader = JFactor_Reader()
+        sources_logJ,sources_DlogJ = Jfactor_reader.read_JFactor(JFactor_file,sources)
+        del Jfactor_reader
+
     for channel in channels:
         for ul_dict in [sigmavULs,sigmavULs_Jnuisance]:
             if ul_dict is sigmavULs_Jnuisance and not config['Data']['J_nuisance']:
@@ -114,9 +126,9 @@ def plot_sigmavULs(config):
             ax.set_yscale('log')
             ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
             if ul_dict is sigmavULs:
-                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J fixed')
             else:
-                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass (J nuisance)')
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J as nuisance')
 
             ax.text(0.2, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
             ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center',verticalalignment='center', transform=ax.transAxes)
@@ -153,8 +165,8 @@ def plot_sigmavULs(config):
                 ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
                 ax.set_yscale('log')
                 ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
-                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass')
-                ax.text(0.2, 0.85, '{}'.format(source), fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - {} (DlogJ={})'.format(source, np.around(sources_DlogJ[source],decimals=2)))
+                #ax.text(0.2, 0.85, , fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
                 ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center',verticalalignment='center', transform=ax.transAxes)
                 # Shrink current axis by 20%
                 box = ax.get_position()
