@@ -36,10 +36,6 @@ def run_combiner(config):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    gd_writer = gloryduckWriter()
-    gd_writer.convert_txts2hdf5(hdf5file,data_dir)
-    del gd_writer
-
     channels = config['Configuration']['channels']
     sources = config['Configuration']['sources']
     collaborations = config['Configuration']['collaborations']
@@ -53,6 +49,10 @@ def run_combiner(config):
     if collaborations is None:
         collaborations = np.array(gloryduck.collaborations)
     channels_LaTex = gloryduck.channels_LaTex
+
+    gd_writer = gloryduckWriter()
+    gd_writer.convert_txts2hdf5(hdf5file,data_dir,channels,sources,collaborations)
+    del gd_writer
 
     gd_reader = gloryduckReader()
     tstables, massvals = gd_reader.read_gloryduck_tstables(hdf5file,channels,sources,collaborations)

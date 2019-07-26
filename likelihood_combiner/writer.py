@@ -16,26 +16,34 @@ class gloryduckWriter:
         # List of valid annihilation channels:
         self.gd_channels = gloryduck.channels
     
-    def convert_txts2hdf5(self,hdf5file,path2txts):
+    def convert_txts2hdf5(self, hdf5file, path2txts, channels=None, sources=None, collaborations=None):
         
         # Opening the hdf5 file.
         h5 = tables.open_file(hdf5file, mode="w", title="Gloryduck database")
-
+        
+        # Checking if channels, sources and collaborations are provided. Otherwise take the gloryduck standard ones.
+        if channels is None:
+            channels = self.gd_channels
+        channels = np.array(channels)
+        if sources is None:
+            sources = self.gd_sources
+        sources = np.array(sources)
+        if collaborations is None:
+            collaborations = self.gd_collaborations
+        collaborations = np.array(collaborations)
+        
         # Reading the .txt files in the folder.
         files = np.array([x for x in os.listdir(path2txts) if x.endswith(".txt") and x not in "Jfactor_Geringer-SamethTable.txt"])
         print("The files written in '{}' ({}):".format(h5.title,hdf5file))
-
-        for counter,file in enumerate(files):
+        
+        counter = 1
+        for file in files:
     
             # Parsing the file name and checking validation with the predefined information.
             file_info = file.replace('.txt','').split("_")
-            if file_info[0] not in self.gd_channels:
-                raise ValueError("'{}' is not a valid channel!".format(file_info[0]))
-            if file_info[1] not in self.gd_sources:
-                raise ValueError("'{}' is not a valid source!".format(file_info[1]))
-            if file_info[2] not in self.gd_collaborations:
-                raise ValueError("'{}' is not a valid collaboration!".format(file_info[2]))
-    
+            if file_info[0] not in channels or file_info[1] not in sources or file_info[2] not in collaborations:
+                continue
+
             # Creating a new node in the hdf5 file, if it isn't already existing.
             if "/{}".format(file_info[0]) not in h5:
                 h5.create_group(h5.root,file_info[0],"Further information about the annihilation channel {}".format(file_info[0]))
@@ -46,7 +54,8 @@ class gloryduckWriter:
 
             # Opening the txt files.
             ts_file = open("{}/{}".format(path2txts,file),"r")
-            print("    {}) '{}'".format(counter+1,file))
+            print("    {}) '{}'".format(counter,file))
+            counter += 1
         
             # Going through the table in the txt file and storing the entries in a 2D array.
             ts_val = np.array([[i for i in line.split()] for line in ts_file]).T
