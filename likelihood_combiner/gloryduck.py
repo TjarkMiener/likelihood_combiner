@@ -5,7 +5,7 @@ class gloryduckInfo:
         ######################################################
 
         # List of the collaborations:
-        self.collaborations = ['MAGIC','HESS','FermiLAT','VERITAS','HAWC']
+        self.collaborations = ['FermiLAT','HAWC','HESS','MAGIC','VERITAS']
 
         # List of sources:
         self.sources = ['mock', 'dummy', 'BootesI', 'CanesVenaticiI', 'CanesVenaticiII', 'Carina', 'ComaBerenices', 'Draco', 'Fornax', 'Hercules', 'LeoI', 'LeoII', 'LeoIV', 'LeoT', 'LeoV', 'Sculptor', 'Segue1', 'Segue2', 'Sextans', 'UrsaMajorI', 'UrsaMajorII', 'UrsaMinor']

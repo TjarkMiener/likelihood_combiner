@@ -1,37 +1,40 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import interp1d
 
 from likelihood_combiner.reader import gloryduckReader,JFactor_Reader
 from likelihood_combiner.gloryduck import gloryduckInfo
 
 def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
-    # We need to reverse the sigmav array, because x values in CubicSpline() must be in strictly increasing order.
     limits = {}
     for key, tstable in ts_dict.items():
         if np.all(tstable==0):
             limits[key] = np.nan
         else:
             min_ind = list(tstable).index(np.min(tstable))
-            cSpline = CubicSpline(sigmav, tstable)
-            if min_ind != 0:
-                x = np.linspace(sigmav[min_ind-1], sigmav[min_ind+1], num=25, endpoint=True)
-                y = cSpline(x)
-                min_sigmav = x[list(y).index(np.min(y))]
-            else:
+            cub_interpolation = interp1d(sigmav, tstable, kind='cubic')
+            if min_ind == 0:
                 min_sigmav = sigmav[min_ind]
-
+            elif min_ind == sigmav.shape[0]-1:
+                limits[key] = np.nan
+                continue
+            else:
+                x = np.linspace(sigmav[min_ind-1], sigmav[min_ind+1], num=25, endpoint=True)
+                y = cub_interpolation(x)
+                min_sigmav = x[list(y).index(np.min(y))]
             for ind in np.arange(min_ind,sigmav.shape[0]):
                 if tstable[ind] > confidence_level:
                     x = np.linspace(sigmav[ind-1], sigmav[ind], num=25, endpoint=True)
-                    y = cSpline(x)
+                    y = cub_interpolation(x)
                     for i,y_val in enumerate(y):
                         if y_val > confidence_level:
                             limit = (confidence_level - y[i]) * (x[i-1] - x[i]) / (y[i-1] - y[i]) + x[i]
                             limit -= min_sigmav
                             break
                     break
+                else:
+                    limit = np.nan
             limits[key] = limit
     return limits
 
@@ -48,12 +51,12 @@ def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict):
             profiling_steps = 10000
             l = np.linspace(-maxdev, maxdev, num=profiling_steps, endpoint=True)
             lLkl = -2.*np.log((np.exp(-np.power(l,2)/(2.*np.power(DlogJ,2)))/(np.sqrt(2.*np.pi)*DlogJ*np.log(10))))
-            cSpline = CubicSpline(sigmav, tstable)
+            lin_interpolation = interp1d(sigmav, tstable, kind='linear', fill_value='extrapolate')
             min_ind = np.min(np.where(tstable == np.min(tstable)))
             ts_val = []
             for sv in sigmav:
                 g = sv/np.power(10,l)
-                gSpline = cSpline(g)
+                gSpline = lin_interpolation(g)
                 gLkl = np.where(((g>1e-28) & (g<1e-18)), gSpline,  np.nan)
                 totLkl = gLkl + lLkl
                 ts_val.append(np.nanmin(totLkl))
