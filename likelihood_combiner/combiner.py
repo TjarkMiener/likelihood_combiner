@@ -24,7 +24,7 @@ def run_combiner(config):
         if hdf5file is None:
             raise KeyError
     except KeyError:
-        hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/gloryduck_dataset.h5"))
+        hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/gloryduck.h5"))
 
     try:
         output_dir = config['Output']['output_directory']
@@ -121,10 +121,6 @@ def run_combiner(config):
                             combined_source_ts[source+"_"+str(m)] += source_ts_dict[source+"_"+str(m)]
                         else:
                             combined_source_ts[source+"_"+str(m)] = source_ts_dict[source+"_"+str(m)]
-                            #if source+"_"+str(m) in combined_source_ts_Jnuisance:
-                            #    combined_source_ts_Jnuisance[source+"_"+str(m)] += source_ts_dict_Jnuisance[source+"_"+str(m)]
-                            #else:
-                            #    combined_source_ts_Jnuisance[source+"_"+str(m)] = source_ts_dict_Jnuisance[source+"_"+str(m)]
                     # Bound the combination of the source of the ts value to the x-axis.
                     for m in masses:
                         if np.min(combined_source_ts[source+"_"+str(m)]) > 0.0:
@@ -246,10 +242,11 @@ def run_combiner(config):
                     combined_sources_ts[str(m)] -= np.min(combined_sources_ts[str(m)])
                 if np.min(combined_sources_ts_Jnuisance[str(m)]) > 0.0 and config['Data']['J_nuisance']:
                     combined_sources_ts_Jnuisance[str(m)] -= np.min(combined_sources_ts_Jnuisance[str(m)])
-                            
+   
+        print("{}_Combination".format(channel))
         h5 = tables.open_file(hdf5file, 'a')
-        if "/{}/Combination_ALL".format(channel) not in h5:
-            h5.create_group(eval("h5.root.{}".format(channel)), "Combination_ALL", "Further information about the combination of sources ({}).".format(','.join(combined_sources)))
+        if "/{}/Combination_all".format(channel) not in h5:
+            h5.create_group(eval("h5.root.{}".format(channel)), "Combination_all", "Further information about the combination of sources ({}).".format(','.join(combined_sources)))
         
         columns_dict={"mass":tables.Float32Col(),
                       "ts":tables.Float32Col(shape=sigmav_shape),
@@ -258,11 +255,11 @@ def run_combiner(config):
 
         # Creating the table mass vs sigmav for each source and for each channel.
         table_name = "sigmavVsMass"
-        table = h5.create_table(eval("h5.root.{}.Combination_ALL".format(channel)),table_name,description,"Table of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
+        table = h5.create_table(eval("h5.root.{}.Combination_all".format(channel)),table_name,description,"Table of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
         
         # Filling the data of the txt file into the table of the hdf5 file.
         for key in combined_sources_ts.keys():
-            table = eval("h5.root.{}.Combination_ALL.{}".format(channel,table_name))
+            table = eval("h5.root.{}.Combination_all.{}".format(channel,table_name))
             row = table.row
             row['mass']  = key
             # The first element of the ts array (mass value) will be ignored, since it's in the mass column.
@@ -284,10 +281,10 @@ def run_combiner(config):
                       "sigmav_UL_Jnuisance":tables.Float32Col()}
         description = type("description", (tables.IsDescription,), columns_dict)
         table_name = "ULsigmavVsMass"
-        table = h5.create_table(eval("h5.root.{}.Combination_ALL".format(channel)),table_name,description,"95% CL sigmav UL vs mass of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
+        table = h5.create_table(eval("h5.root.{}.Combination_all".format(channel)),table_name,description,"95% CL sigmav UL vs mass of the combination of collaborations ({}) for the sources ({}) with the annihilation channel {}.".format(','.join(collaborations),','.join(combined_sources),channel))
         # Filling the sigmav UL into the table of the hdf5 file.
         for key in combined_sources_sensitivity.keys():
-            table = eval("h5.root.{}.Combination_ALL.{}".format(channel,table_name))
+            table = eval("h5.root.{}.Combination_all.{}".format(channel,table_name))
             row = table.row
             row['mass']  = key
             # The first element of the ts array (mass value) will be ignored, since it's in the mass column.

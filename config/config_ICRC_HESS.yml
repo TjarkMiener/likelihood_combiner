@@ -1,6 +1,6 @@
 Data:
   data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
-  hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/gloryduck_all.h5
+  hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/gloryduck_HESS.h5
   J_nuisance: true
   JFactor_table: /Users/tmiener/Documents/likelihood_combiner/data/Jfactor_Geringer-SamethTable.txt
   # Define the sigma ranges
@@ -10,10 +10,10 @@ Data:
 Configuration:
   channels: ['bb', 'tautau']
   sources: ['BootesI', 'CanesVenaticiI', 'CanesVenaticiII', 'Carina', 'ComaBerenices', 'Draco', 'Fornax', 'Hercules', 'LeoI', 'LeoII', 'LeoIV', 'LeoT', 'LeoV', 'Sculptor', 'Segue1', 'Segue2', 'Sextans', 'UrsaMajorI', 'UrsaMajorII', 'UrsaMinor']
-  collaborations: ['HAWC', 'FermiLAT', 'HESS','MAGIC','VERITAS']
+  collaborations: ['HESS']
   combined_sources_from_collaborations: true
 Output:
-  output_directory: /Users/tmiener/Documents/likelihood_combiner/output_all
+  output_directory: /Users/tmiener/Documents/likelihood_combiner/output_HESS
   only_plotting: false
   save_plots_of_sources: true
   save_plots_of_collaborations: true

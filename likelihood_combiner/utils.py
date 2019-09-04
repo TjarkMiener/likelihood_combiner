@@ -122,9 +122,9 @@ def plot_sigmavULs(config):
             for source in sources:
                 if channel+"_"+source+"_Combination" in ul_dict:
                     ax.plot(massvals[channel+"_"+source+"_Combination"],ul_dict[channel+"_"+source+"_Combination"],label='{} limit'.format(source))
-            ax.plot(massvals[channel+"_Combination_ALL"], ul_dict[channel+"_Combination_ALL"], label='Combined limit')
+            ax.plot(massvals[channel+"_Combination_all"], ul_dict[channel+"_Combination_all"], label='Combined limit')
             ax.set_xscale('log')
-            ax.set_xbound(lower=np.min(massvals[channel+"_Combination_ALL"]),upper=np.max(massvals[channel+"_Combination_ALL"]))
+            ax.set_xbound(lower=np.min(massvals[channel+"_Combination_all"]),upper=np.max(massvals[channel+"_Combination_all"]))
             ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
             ax.set_yscale('log')
             ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
@@ -141,8 +141,6 @@ def plot_sigmavULs(config):
         
             # Put a legend to the right of the current axis
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
-            #fig.tight_layout()
-            #ax.legend(loc='upper right')
             ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
             if ul_dict is sigmavULs:
                 plt.savefig('{}/{}_alldSph_withsources.pdf'.format(output_dir,channel))
@@ -177,8 +175,6 @@ def plot_sigmavULs(config):
 
                 # Put a legend to the right of the current axis
                 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
-                #fig.tight_layout()
-                #ax.legend(loc='upper right')
                 ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
                 plt.savefig('{}/{}_{}.pdf'.format(output_dir,channel,source))
                 print("Saved plot in {}/{}_{}.pdf".format(output_dir,channel,source))

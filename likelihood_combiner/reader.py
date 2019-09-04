@@ -87,9 +87,9 @@ class gloryduckReader:
             if channel not in self.gd_channels:
                 raise ValueError("'{}' is not a valid channel!".format(channel))
             
-            if "/{}/Combination_ALL".format(channel) in h5:
-                print("    {}) ('{}', 'Combination_ALL')".format(counter,channel))
-                ULsigmavVsMass = eval("h5.root.{}.Combination_ALL.ULsigmavVsMass".format(channel))
+            if "/{}/Combination_all".format(channel) in h5:
+                print("    {}) ('{}', 'Combination_all')".format(counter,channel))
+                ULsigmavVsMass = eval("h5.root.{}.Combination_all.ULsigmavVsMass".format(channel))
                 sigmavUL = []
                 sigmavUL_Jnuisance = []
                 mass = []
@@ -97,7 +97,7 @@ class gloryduckReader:
                     sigmavUL.append(x['sigmav_UL'])
                     sigmavUL_Jnuisance.append(x['sigmav_UL_Jnuisance'])
                     mass.append(x['mass'])
-                table_info = "{}_Combination_ALL".format(channel)
+                table_info = "{}_Combination_all".format(channel)
                 sigmavULs[table_info] = np.array(sigmavUL)
                 sigmavULs_Jnuisance[table_info] = np.array(sigmavUL_Jnuisance)
                 massvals[table_info] = np.array(mass)
@@ -127,6 +127,53 @@ class gloryduckReader:
         # Closing hdf5 file.
         h5.close()
         return sigmavULs, sigmavULs_Jnuisance, massvals
+
+    def read_gloryduck_sigmavULs_collaborations(self, data_dir, hdf5file, channels=None, collaborations=None):
+        
+        if channels is None:
+            channels = self.gd_channels
+        channels = np.array(channels)
+        if collaborations is None:
+            collaborations = self.gd_collaborations
+        collaborations = np.array(collaborations)
+   
+        sigmav_UL = {}
+        sigmav_UL_Jnuisance = {}
+        massvals = {}
+        for channel in channels:
+            for collaboration in collaborations:
+                h5 = tables.open_file("{}gloryduck_{}.h5".format(data_dir,collaboration), 'r')
+                if "/{}/Combination_all".format(channel) in h5:
+                    ULsigmavVsMassTable = eval("h5.root.{}.Combination_all.ULsigmavVsMass".format(channel))
+                    ul = []
+                    ul_Jnuisance = []
+                    mass = []
+                    for x in ULsigmavVsMassTable.iterrows():
+                        ul.append(x['sigmav_UL'])
+                        ul_Jnuisance.append(x['sigmav_UL_Jnuisance'])
+                        mass.append(x['mass'])
+                    table_info = "{}_{}".format(channel,collaboration)
+                    sigmav_UL[table_info] = np.array(ul)
+                    sigmav_UL_Jnuisance[table_info] = np.array(ul_Jnuisance)
+                    massvals[table_info] = np.array(mass)
+            
+                # Closing hdf5 file
+                h5.close()
+            h5 = tables.open_file(hdf5file, 'r')
+            if "/{}/Combination_all".format(channel) in h5:
+                ULsigmavVsMassTable = eval("h5.root.{}.Combination_all.ULsigmavVsMass".format(channel))
+                ul = []
+                ul_Jnuisance = []
+                mass = []
+                for x in ULsigmavVsMassTable.iterrows():
+                    ul.append(x['sigmav_UL'])
+                    ul_Jnuisance.append(x['sigmav_UL_Jnuisance'])
+                    mass.append(x['mass'])
+                table_info = "{}_Combination_all".format(channel)
+                sigmav_UL[table_info] = np.array(ul)
+                sigmav_UL_Jnuisance[table_info] = np.array(ul_Jnuisance)
+                massvals[table_info] = np.array(mass)
+        return sigmav_UL, sigmav_UL_Jnuisance, massvals
 
 class JFactor_Reader:
     def __init__(self):
