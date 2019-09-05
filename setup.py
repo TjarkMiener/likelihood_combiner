@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='lklcom',
-      version='0.2.0',
+      version='0.1.0',
       description='LikelihoodCombiner combines likelihoods from different experiments.',
       url='https://github.com/TjarkMiener/likelihood_combiner',
       license='BSD-3-Clause',
