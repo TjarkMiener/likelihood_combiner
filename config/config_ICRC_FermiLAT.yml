@@ -13,7 +13,7 @@ Configuration:
   collaborations: ['FermiLAT']
   combined_sources_from_collaborations: true
 Output:
-  output_directory: /Users/tmiener/Documents/likelihood_combiner/output_FermiLAT
+  output_directory: /Users/tmiener/Documents/likelihood_combiner/output_FermiLAT/
   only_plotting: false
   save_plots_of_sources: true
   save_plots_of_collaborations: true

@@ -143,12 +143,12 @@ def plot_sigmavULs(config):
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
             ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
             if ul_dict is sigmavULs:
-                plt.savefig('{}/{}_alldSph_withsources.pdf'.format(output_dir,channel))
-                print("Saved plot in {}/{}_alldSph_withsources.pdf".format(output_dir,channel))
+                plt.savefig('{}{}_alldSph_withsources.pdf'.format(output_dir,channel))
+                print("Saved plot in {}{}_alldSph_withsources.pdf".format(output_dir,channel))
                 plt.close()
             else:
-                plt.savefig('{}/{}_alldSph_withsources_Jnuisance.pdf'.format(output_dir,channel))
-                print("Saved plot in {}/{}_alldSph_withsources_Jnuisance.pdf".format(output_dir,channel))
+                plt.savefig('{}{}_alldSph_withsources_Jnuisance.pdf'.format(output_dir,channel))
+                print("Saved plot in {}{}_alldSph_withsources_Jnuisance.pdf".format(output_dir,channel))
                 plt.close()
             ax.clear()
         if config['Output']['save_plots_of_sources']:
@@ -176,8 +176,8 @@ def plot_sigmavULs(config):
                 # Put a legend to the right of the current axis
                 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
                 ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
-                plt.savefig('{}/{}_{}.pdf'.format(output_dir,channel,source))
-                print("Saved plot in {}/{}_{}.pdf".format(output_dir,channel,source))
+                plt.savefig('{}{}_{}.pdf'.format(output_dir,channel,source))
+                print("Saved plot in {}{}_{}.pdf".format(output_dir,channel,source))
                 plt.close()
                 ax.clear()
             

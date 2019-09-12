@@ -13,7 +13,7 @@ Configuration:
   collaborations: ['HAWC', 'FermiLAT', 'HESS','MAGIC','VERITAS']
   combined_sources_from_collaborations: true
 Output:
-  output_directory: /Users/tmiener/Documents/likelihood_combiner/output_all
+  output_directory: /Users/tmiener/Documents/likelihood_combiner/output_all/
   only_plotting: false
   save_plots_of_sources: true
   save_plots_of_collaborations: true
