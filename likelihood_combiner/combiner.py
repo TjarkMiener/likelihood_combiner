@@ -84,9 +84,9 @@ def run_combiner(config):
         combined_sources = []
         combined_sources_ts = {}
         combined_sources_ts_Jnuisance = {}
+        mass_axis = []
         for source in sources:
             # Combine ts values for each dSphs
-            mass_axis = []
             combined_source_ts = {}
             combined_source_ts_Jnuisance = {}
             combined_collaborations = []
@@ -115,19 +115,14 @@ def run_combiner(config):
                             source_ts_dict[source+"_"+str(m)] = lin_interpolation(sigmav)
                         else:
                             source_ts_dict[source+"_"+str(m)] = tstable[i+1][::-1]
-                        if config['Data']['J_nuisance']:
-                            source_ts_dict_Jnuisance = compute_Jnuisance(sigmav, source_ts_dict, sources_DlogJ)
                         if source+"_"+str(m) in combined_source_ts:
                             combined_source_ts[source+"_"+str(m)] += source_ts_dict[source+"_"+str(m)]
                         else:
                             combined_source_ts[source+"_"+str(m)] = source_ts_dict[source+"_"+str(m)]
-                    # Bound the combination of the source of the ts value to the x-axis.
-                    for m in masses:
-                        if np.min(combined_source_ts[source+"_"+str(m)]) > 0.0:
-                            combined_source_ts[source+"_"+str(m)] -= np.min(combined_source_ts[source+"_"+str(m)])
-                        if np.min(source_ts_dict_Jnuisance[source+"_"+str(m)]) > 0.0 and config['Data']['J_nuisance']:
-                            source_ts_dict_Jnuisance[source+"_"+str(m)] -= np.min(source_ts_dict_Jnuisance[source+"_"+str(m)])
-                
+                            
+                    if config['Data']['J_nuisance']:
+                        source_ts_dict_Jnuisance = compute_Jnuisance(sigmav, source_ts_dict, sources_DlogJ)
+                    
                     h5 = tables.open_file(hdf5file, 'a')
                     columns_dict={"mass":tables.Float32Col(),
                                   "sigmav_UL":tables.Float32Col(),
@@ -136,9 +131,9 @@ def run_combiner(config):
                     table_name = "ULsigmavVsMass"
                     table = h5.create_table(eval("h5.root.{}.{}.{}".format(channel,source,collaboration)),table_name,description,"95% CL sigmav UL vs mass of the {} collaboration for the source {} with the annihilation channel {}.".format(collaboration,source,channel))
 
-                    sensitivity = compute_sensitivity(sigmav, source_ts_dict)
+                    limits,sensitivity = compute_sensitivity(sigmav, source_ts_dict)
                     if config['Data']['J_nuisance']:
-                        sensitivity_Jnuisance = compute_sensitivity(sigmav, source_ts_dict_Jnuisance)
+                        limits_Jnuisance,sensitivity_Jnuisance = compute_sensitivity(sigmav, source_ts_dict_Jnuisance)
 
                     # Filling the sigmav UL into the table of the hdf5 file.
                     for key in sensitivity.keys():
@@ -147,9 +142,9 @@ def run_combiner(config):
                         row = table.row
                         row['mass']  = key_split[1]
                             # The first element of the ts array (mass value) will be ignored, since it's in the mass column.
-                        row['sigmav_UL'] = sensitivity[key]
+                        row['sigmav_UL'] = limits[key]
                         if config['Data']['J_nuisance']:
-                            row['sigmav_UL_Jnuisance'] = sensitivity_Jnuisance[key]
+                            row['sigmav_UL_Jnuisance'] = limits_Jnuisance[key]
                         else:
                             row['sigmav_UL_Jnuisance'] = np.nan
 
@@ -164,15 +159,13 @@ def run_combiner(config):
             h5 = tables.open_file(hdf5file, 'a')
             if "/{}/{}/Combination".format(channel,source) not in h5:
                 h5.create_group(eval("h5.root.{}.{}".format(channel,source)), "Combination", "Further information about the combination of collaborations ({}).".format(','.join(combined_collaborations)))
-
-            combined_source_sensitivity = compute_sensitivity(sigmav, combined_source_ts)
+            tsts = combined_source_ts
+            combined_source_limits,combined_source_sensitivity = compute_sensitivity(sigmav, combined_source_ts)
             if config['Data']['J_nuisance']:
+                source_ts_dict_Jnuisance = compute_Jnuisance(sigmav, tsts, sources_DlogJ)
                 for m in mass_axis:
-                    source_ts_dict_Jnuisance = compute_Jnuisance(sigmav, combined_source_ts, sources_DlogJ)
                     combined_source_ts_Jnuisance[source+"_"+str(m)] = source_ts_dict_Jnuisance[source+"_"+str(m)]
-                if np.min(combined_source_ts_Jnuisance[source+"_"+str(m)]) > 0.0:
-                    combined_source_ts_Jnuisance[source+"_"+str(m)] -= np.min(combined_source_ts_Jnuisance[source+"_"+str(m)])
-                combined_source_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_source_ts_Jnuisance)
+                combined_source_limits_Jnuisance,combined_source_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_source_ts_Jnuisance)
             
             # Creating the table structure for the hdf5 file.
             sigmav_shape = (sigmav.shape[0],)
@@ -186,7 +179,7 @@ def run_combiner(config):
             table = h5.create_table(eval("h5.root.{}.{}.Combination".format(channel,source)),table_name,description,"Table of the combination of collaborations ({}) for the source {} with the annihilation channel {}.".format(','.join(combined_collaborations),source,channel))
                                 
             # Filling the data of the txt file into the table of the hdf5 file.
-            for key in combined_source_sensitivity.keys():
+            for key in combined_source_limits.keys():
                 key_split = key.split("_")
                 table = eval("h5.root.{}.{}.Combination.{}".format(channel,source,table_name))
                 row = table.row
@@ -210,15 +203,15 @@ def run_combiner(config):
             table_name = "ULsigmavVsMass"
             table = h5.create_table(eval("h5.root.{}.{}.Combination".format(channel,source)),table_name,description,"95% CL sigmav UL vs mass of the combination of collaborations ({}) for the source {} with the annihilation channel {}.".format(','.join(combined_collaborations),source,channel))
             # Filling the sigmav UL into the table of the hdf5 file.
-            for key in combined_source_sensitivity.keys():
+            for key in combined_source_limits.keys():
                 key_split = key.split("_")
                 table = eval("h5.root.{}.{}.Combination.{}".format(channel,source,table_name))
                 row = table.row
                 row['mass']  = key_split[1]
                 # The first element of the ts array (mass value) will be ignored, since it's in the mass column.
-                row['sigmav_UL'] = combined_source_sensitivity[key]
+                row['sigmav_UL'] = combined_source_limits[key]
                 if config['Data']['J_nuisance']:
-                    row['sigmav_UL_Jnuisance'] = combined_source_sensitivity_Jnuisance[key]
+                    row['sigmav_UL_Jnuisance'] = combined_source_limits_Jnuisance[key]
                 else:
                     row['sigmav_UL_Jnuisance'] = np.nan
                 
@@ -236,12 +229,6 @@ def run_combiner(config):
                     combined_sources_ts[str(m)] = combined_source_ts[source+"_"+str(m)]
                     if config['Data']['J_nuisance']:
                         combined_sources_ts_Jnuisance[str(m)] = combined_source_ts_Jnuisance[source+"_"+str(m)]
-            # Bound the combination of the ts value to the x-axis.
-            for m in mass_axis:
-                if np.min(combined_sources_ts[str(m)]) > 0.0:
-                    combined_sources_ts[str(m)] -= np.min(combined_sources_ts[str(m)])
-                if np.min(combined_sources_ts_Jnuisance[str(m)]) > 0.0 and config['Data']['J_nuisance']:
-                    combined_sources_ts_Jnuisance[str(m)] -= np.min(combined_sources_ts_Jnuisance[str(m)])
    
         print("{}_Combination".format(channel))
         h5 = tables.open_file(hdf5file, 'a')
@@ -272,9 +259,9 @@ def run_combiner(config):
             row.append()
             table.flush()
 
-        combined_sources_sensitivity = compute_sensitivity(sigmav, combined_sources_ts)
+        combined_sources_limits,combined_sources_sensitivity = compute_sensitivity(sigmav, combined_sources_ts)
         if config['Data']['J_nuisance']:
-            combined_sources_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_sources_ts_Jnuisance)
+            combined_sources_limits_Jnuisance,combined_sources_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_sources_ts_Jnuisance)
 
         columns_dict={"mass":tables.Float32Col(),
                       "sigmav_UL":tables.Float32Col(),
@@ -288,9 +275,9 @@ def run_combiner(config):
             row = table.row
             row['mass']  = key
             # The first element of the ts array (mass value) will be ignored, since it's in the mass column.
-            row['sigmav_UL'] = combined_sources_sensitivity[key]
+            row['sigmav_UL'] = combined_sources_limits[key]
             if config['Data']['J_nuisance']:
-                row['sigmav_UL_Jnuisance'] = combined_sources_sensitivity_Jnuisance[key]
+                row['sigmav_UL_Jnuisance'] = combined_sources_limits_Jnuisance[key]
             else:
                 row['sigmav_UL_Jnuisance'] = np.nan
                 
