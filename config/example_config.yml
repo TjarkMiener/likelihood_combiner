@@ -1,16 +1,20 @@
+Hardware:
+  cpu_counts: all
 Data:
   data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
   hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/lklcom.h5
+  cl_bands: false
+  simu_directory: /Users/tmiener/Documents/likelihood_combiner/simu/
+  simulations: 300
   J_nuisance: true
   JFactor_table: /Users/tmiener/Documents/likelihood_combiner/data/Jfactor_Geringer-SamethTable.txt
   # Define the sigma ranges
-  sigmavMin: 1e-28
-  sigmavMax: 1e-18
-  sigmavNPoints: 1001
+  sigmaV_min: 1e-28
+  sigmaV_max: 1e-18
+  sigmaV_nPoints: 1001
 Configuration:
-  channels: ['bb', 'tautau']
+  channels: ['bb', 'ee', 'mumu', 'tautau', 'tt']
   sources: ['BootesI', 'CanesVenaticiI', 'CanesVenaticiII', 'Carina', 'ComaBerenices', 'Draco', 'Fornax', 'Hercules', 'LeoI', 'LeoII', 'LeoIV', 'LeoT', 'LeoV', 'Sculptor', 'Segue1', 'Segue2', 'Sextans', 'UrsaMajorI', 'UrsaMajorII', 'UrsaMinor']
   collaborations: ['HAWC', 'FermiLAT', 'HESS', 'MAGIC', 'VERITAS']
 Output:
   output_directory: /Users/tmiener/Documents/likelihood_combiner/output/
-  only_plotting: false

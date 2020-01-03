@@ -1,6 +1,7 @@
 import tables
 import numpy as np
 import os
+import pandas as pd
 
 class LklComReader:
     def __init__(self):
@@ -34,36 +35,39 @@ class LklComReader:
         # Closing hdf5 file.
         h5.close()
         return tstables, massvals
-
-    def read_sigmavULs(self, hdf5file, channels):
+        
+    def read_simutstables(self, path2txts, simulation, channels, sources, collaborations):
     
-        # Opening hdf5 file.
-        h5 = tables.open_file(hdf5file, 'r')
-    
-        print("The sigmav ULs read from '{}' ({}):".format(h5.title,hdf5file))
-        counter = 1
-        sigmavULs = {}
-        sigmavULs_Jnuisance = {}
+        tstables = {}
         massvals = {}
         for channel in channels:
-            if "/{}/Combination".format(channel) in h5:
-                print("    {}) ('{}', 'Combination')".format(counter,channel))
-                ULsigmavVsMass = eval("h5.root.{}.Combination.ULsigmavVsMass".format(channel))
-                sigmavUL = []
-                sigmavUL_Jnuisance = []
-                mass = []
-                for x in ULsigmavVsMass.iterrows():
-                    sigmavUL.append(x['sigmav_UL'])
-                    sigmavUL_Jnuisance.append(x['sigmav_UL_Jnuisance'])
-                    mass.append(x['mass'])
-                table_info = "{}_Combination".format(channel)
-                sigmavULs[table_info] = np.array(sigmavUL)
-                sigmavULs_Jnuisance[table_info] = np.array(sigmavUL_Jnuisance)
-                massvals[table_info] = np.array(mass)
-                counter+=1
-        # Closing hdf5 file.
-        h5.close()
-        return sigmavULs, sigmavULs_Jnuisance, massvals
+            files = np.array([x for x in os.listdir(path2txts+channel) if x.endswith("_{}.txt".format(simulation)) and x not in "Jfactor_Geringer-SamethTable.txt"])
+            for file in files:
+                # Parsing the file name and checking validation with the predefined information.
+                file_key = file.replace('_{}.txt'.format(simulation),'')
+                file_info = file.replace('_{}.txt'.format(simulation),'').split("_")
+                if file_info[0] != channel or file_info[1] not in sources or file_info[2] not in collaborations:
+                    continue
+                    
+                # Opening the txt files.
+                ts_file = open("{}/{}".format(path2txts+channel,file),"r")
+                
+                # Going through the table in the txt file and storing the entries in a 2D array.
+                values = np.array([[i for i in line.split()] for line in ts_file], dtype=np.float32).T
+                    
+                # The first entry of each row correponds to the mass.
+                # Detect the first entry and store it in a separate array.
+                mass = np.array([values[i][0] for i in np.arange(0,values.shape[0],1)], dtype=np.float32)
+                
+                # Delete the first entry, so only TS values are stored in ts_val.
+                ts_val = []
+                for val in values:
+                    ts_val.append(val[1:])
+                
+                # Store the arrays in the dictionary.
+                tstables[file_key] = np.array(ts_val, dtype=np.float32)
+                massvals[file_key] = mass
+        return tstables, massvals
 
     def read_sigmavULs_collaborations(self, data_dir, hdf5file, channels, collaborations):
         sigmav_UL = {}

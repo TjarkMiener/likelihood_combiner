@@ -37,6 +37,7 @@ NOTE for developers: If you wish to fork/clone the respository and make changes 
 - Python 3.7.3
 - NumPy
 - SciPy
+- Pandas
 - PyTables
 - PyYAML
 - Matplotlib
