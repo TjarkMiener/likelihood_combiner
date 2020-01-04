@@ -38,7 +38,6 @@ NOTE for developers: If you wish to fork/clone the respository and make changes 
 - NumPy
 - SciPy
 - Pandas
-- PyTables
 - PyYAML
 - Matplotlib
   

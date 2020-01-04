@@ -1,54 +1,46 @@
-import tables
 import numpy as np
 import os
 import pandas as pd
 
 class LklComReader:
-    def __init__(self):
-        """Constructor"""
+    def __init__(self,
+                 channels,
+                 sources,
+                 collaborations,
+                 angular_separation=None):
+
+        self.channels = channels
+        self.sources = sources
+        self.collaborations = collaborations
+        
+        # Define the angular separation from dwarf center:
+        if angular_separation is None:
+            angular_separation = 0.53086117
+        self.angular_separation = angular_separation
     
-    def read_tstables(self, hdf5file, channels, sources, collaborations):
-        
-        # Opening hdf5 file.
-        h5 = tables.open_file(hdf5file, 'r')
-        
-        print("The tables read from '{}' ({}):".format(h5.title,hdf5file))
-        counter = 1
-        tstables = {}
-        massvals = {}
-        for channel in channels:
-            for source in sources:
-                for collaboration in collaborations:
-                    if "/{}/{}/{}".format(channel,source,collaboration) in h5:
-                        print("    {}) ('{}', '{}', '{}')".format(counter,channel,source,collaboration))
-                        sigmavVsMassTable = eval("h5.root.{}.{}.{}.sigmavVsMass".format(channel,source,collaboration))
-                        table = []
-                        mass = []
-                        for x in sigmavVsMassTable.iterrows():
-                            table.append(x['ts'])
-                            mass.append(x['mass'])
-                        table_info = "{}_{}_{}".format(channel,source,collaboration)
-                        tstables[table_info] = np.array(table)
-                        massvals[table_info] = np.array(mass)
-                        counter+=1
-         
-        # Closing hdf5 file.
-        h5.close()
-        return tstables, massvals
-        
-    def read_simutstables(self, path2txts, simulation, channels, sources, collaborations):
+    def read_tstables(self, path2txts, simulation=-1):
     
         tstables = {}
-        massvals = {}
-        for channel in channels:
-            files = np.array([x for x in os.listdir(path2txts+channel) if x.endswith("_{}.txt".format(simulation)) and x not in "Jfactor_Geringer-SamethTable.txt"])
+        for channel in self.channels:
+            if simulation == -1:
+                files = np.array([x for x in os.listdir(path2txts+channel) if x.endswith(".txt")])
+            else:
+                files = np.array([x for x in os.listdir(path2txts+channel+"/simulations/") if x.endswith(".txt")])
             for file in files:
-                # Parsing the file name and checking validation with the predefined information.
-                file_key = file.replace('_{}.txt'.format(simulation),'')
-                file_info = file.replace('_{}.txt'.format(simulation),'').split("_")
-                if file_info[0] != channel or file_info[1] not in sources or file_info[2] not in collaborations:
+                # Parsing the file names and checking validation.
+                if simulation == -1:
+                    file_key = file.replace('.txt','')
+                    file_info = file_key.split("_")
+                else:
+                    file_key = file.replace('_{}.txt'.format(simulation),'')
+                    file_info = file_key.split("_")
+                if file_info[0] != channel or file_info[1] not in self.sources or file_info[2] not in self.collaborations:
                     continue
                     
+                # Printing the files, which are included in the combination
+                if simulation == -1:
+                    print(file_info)
+                
                 # Opening the txt files.
                 ts_file = open("{}/{}".format(path2txts+channel,file),"r")
                 
@@ -65,60 +57,14 @@ class LklComReader:
                     ts_val.append(val[1:])
                 
                 # Store the arrays in the dictionary.
-                tstables[file_key] = np.array(ts_val, dtype=np.float32)
-                massvals[file_key] = mass
-        return tstables, massvals
-
-    def read_sigmavULs_collaborations(self, data_dir, hdf5file, channels, collaborations):
-        sigmav_UL = {}
-        sigmav_UL_Jnuisance = {}
-        massvals = {}
-        for channel in channels:
-            for collaboration in collaborations:
-                h5 = tables.open_file("{}lklcom_{}.h5".format(data_dir,collaboration), 'r')
-                if "/{}/Combination".format(channel) in h5:
-                    ULsigmavVsMassTable = eval("h5.root.{}.Combination.ULsigmavVsMass".format(channel))
-                    ul = []
-                    ul_Jnuisance = []
-                    mass = []
-                    for x in ULsigmavVsMassTable.iterrows():
-                        ul.append(x['sigmav_UL'])
-                        ul_Jnuisance.append(x['sigmav_UL_Jnuisance'])
-                        mass.append(x['mass'])
-                    table_info = "{}_{}".format(channel,collaboration)
-                    sigmav_UL[table_info] = np.array(ul)
-                    sigmav_UL_Jnuisance[table_info] = np.array(ul_Jnuisance)
-                    massvals[table_info] = np.array(mass)
-            
-                # Closing hdf5 file
-                h5.close()
-            h5 = tables.open_file(hdf5file, 'r')
-            if "/{}/Combination".format(channel) in h5:
-                ULsigmavVsMassTable = eval("h5.root.{}.Combination.ULsigmavVsMass".format(channel))
-                ul = []
-                ul_Jnuisance = []
-                mass = []
-                for x in ULsigmavVsMassTable.iterrows():
-                    ul.append(x['sigmav_UL'])
-                    ul_Jnuisance.append(x['sigmav_UL_Jnuisance'])
-                    mass.append(x['mass'])
-                table_info = "{}_Combination".format(channel)
-                sigmav_UL[table_info] = np.array(ul)
-                sigmav_UL_Jnuisance[table_info] = np.array(ul_Jnuisance)
-                massvals[table_info] = np.array(mass)
-        return sigmav_UL, sigmav_UL_Jnuisance, massvals
-
-class JFactor_Reader:
-    def __init__(self):
-        """Constructor"""
-        # Define the angular separation from dwarf center:
-        self.angular_separation = 0.53086117
+                tstables[file_key+'_ts'] = np.array(ts_val, dtype=np.float32)
+                tstables[file_key+'_masses'] = mass
+        return tstables
     
-    def read_JFactor(self, JFactor_file, sources):
+    def read_JFactor(self, JFactor_file):
         sources_logJ = {}
         sources_DlogJ = {}
-        angle = self.angular_separation
-        for source in sources:
+        for source in self.sources:
             # Opening txt file.
             file = open(JFactor_file, "r")
             for i,line in enumerate(file):
@@ -126,7 +72,7 @@ class JFactor_Reader:
                     # The source in the GS file for this line
                     source_GS = line[:18].replace(" ", "")
                     line = line[18:].split()
-                    if source == source_GS and float(line[0]) == angle:
+                    if source == source_GS and float(line[0]) == self.angular_separation:
                         sources_logJ[source] = float(line[3])
                         sources_DlogJ[source] = float(line[3]) - float(line[2])
                         file.close()

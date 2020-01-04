@@ -6,11 +6,10 @@ from scipy.interpolate import interp1d
 import os
 import yaml
 
-from likelihood_combiner.reader import LklComReader,JFactor_Reader
-from likelihood_combiner.writer import LklComWriter
-from likelihood_combiner.utils import compute_sensitivity,compute_Jnuisance,plot_sigmavULs
+from likelihood_combiner.reader import LklComReader
+from likelihood_combiner.utils import compute_sensitivity, compute_Jnuisance, plot_sigmavULs, plot_sigmavULs_collaborations
 
-def run_combiner(config, hdf5file, sigmavUL, sigmavUL_Jnuisance, simulations=[-1]):
+def run_combiner(config, sigmavULs, sigmavULs_Jnuisance, simulations=[-1]):
 
     try:
         data_dir = config['Data']['data_directory']
@@ -18,30 +17,24 @@ def run_combiner(config, hdf5file, sigmavUL, sigmavUL_Jnuisance, simulations=[-1
             raise KeyError
     except KeyError:
         data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/"))
-    
-    try:
-        simu_dir = config['Data']['simu_directory']
-        if simu_dir is None:
-            raise KeyError
-    except KeyError:
-        simu_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../simu/"))
 
     channels = config['Configuration']['channels']
     sources = config['Configuration']['sources']
     collaborations = config['Configuration']['collaborations']
     jnuisance = config['Data']['J_nuisance']
 
-    try:
-        JFactor_file = config['Data']['JFactor_table']
-        if JFactor_file is None:
-            raise KeyError
-    except KeyError:
-        JFactor_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/Jfactor_Geringer-SamethTable.txt"))
-
+    # Initializing the LklComReader
+    reader = LklComReader(channels, sources, collaborations)
+    
     if jnuisance:
-        Jfactor_reader = JFactor_Reader()
-        sources_logJ,sources_DlogJ = Jfactor_reader.read_JFactor(JFactor_file,sources)
-        del Jfactor_reader
+        try:
+            JFactor_file = config['Data']['JFactor_table']
+            if JFactor_file is None:
+                raise KeyError
+        except KeyError:
+            JFactor_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/Jfactor_Geringer-SamethTable.txt"))
+            
+        sources_logJ,sources_DlogJ = reader.read_JFactor(JFactor_file)
 
     # Reading in the the sigmav range and spacing. Round of the third digit to avoid an interpolation.
     sigmavMin = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_min'])))).astype(int))).astype(int)
@@ -51,17 +44,11 @@ def run_combiner(config, hdf5file, sigmavUL, sigmavUL_Jnuisance, simulations=[-1
     exponent = (np.abs(np.floor(np.log10(np.abs(sigmav))).astype(int))+3).astype(int)
     for i,e in enumerate(exponent):
         sigmav[i] = np.around(sigmav[i],decimals=e)
-        
-    reader = LklComReader()
-    if simulations == [-1]:
-        writer = LklComWriter()
-        writer.convert_txts2hdf5(hdf5file, data_dir, channels, sources, collaborations)
-        del writer
-        tstables, massvals = reader.read_tstables(hdf5file, channels, sources, collaborations)
 
     for simulation in simulations:
-        if simulation >= 0:
-            tstables, massvals = reader.read_simutstables(simu_dir, simulation, channels, sources, collaborations)
+    
+        tstables = reader.read_tstables(data_dir, simulation)
+
         for channel in channels:
             combined_channel_ts = {}
             combined_channel_ts_Jnuisance = {}
@@ -72,9 +59,9 @@ def run_combiner(config, hdf5file, sigmavUL, sigmavUL_Jnuisance, simulations=[-1
                 combined_source_ts_Jnuisance = {}
                 for collaboration in collaborations:
                     key = "{}_{}_{}".format(channel,source,collaboration)
-                    if key in massvals:
-                        tstable = tstables[key]
-                        masses = massvals[key]
+                    if key+'_ts' in tstables:
+                        tstable = tstables[key+'_ts']
+                        masses = tstables[key+'_masses']
                         sigmavFile = tstable[0]
                         exponent = (np.abs(np.floor(np.log10(np.abs(sigmavFile))).astype(int))+3).astype(int)
                         for i,e in enumerate(exponent):
@@ -128,11 +115,11 @@ def run_combiner(config, hdf5file, sigmavUL, sigmavUL_Jnuisance, simulations=[-1
                 h5_key = "{}_simu{}".format(channel, simulation)
             else:
                 h5_key = "{}_data".format(channel)
-                sigmavUL['masses'] = sorted_mass
-                sigmavUL_Jnuisance['masses'] = sorted_mass
+                sigmavULs["{}_masses".format(channel)] = sorted_mass
+                sigmavULs_Jnuisance["{}_masses".format(channel)] = sorted_mass
 
-            sigmavUL[h5_key] = svUL
-            sigmavUL_Jnuisance[h5_key] = svUL_Jnuisance
+            sigmavULs[h5_key] = svUL
+            sigmavULs_Jnuisance[h5_key] = svUL_Jnuisance
             
         if simulation >= 0:
             print("Combined MC limits (simulation {})".format(simulation))
@@ -162,13 +149,13 @@ if __name__ == "__main__":
     
     # Create a multiprocessing.Manager dict to share memory between the parallel processes
     manager = Manager()
-    sigmavUL = manager.dict()
-    sigmavUL_Jnuisance = manager.dict()
+    sigmavULs = manager.dict()
+    sigmavULs_Jnuisance = manager.dict()
     # Combining limits using real observational data sets
-    run_combiner(config, hdf5file, sigmavUL, sigmavUL_Jnuisance)
+    run_combiner(config, sigmavULs, sigmavULs_Jnuisance)
     print("Combined limits (observational data)")
     if config['Data']['cl_bands']:
-        # Calculate the convendance level bands
+        # Calculate the confidence level bands
         # Set up the hardware settings for the parallel processing
         try:
             cpu_counts = os.cpu_count() if config['Hardware']['cpu_counts'] == 'all' else config['Hardware']['cpu_counts']
@@ -184,7 +171,7 @@ if __name__ == "__main__":
         parallel_simulations = np.array_split(np.arange(simulations), cpu_counts)
         jobs = []
         for parallel_simulation in parallel_simulations:
-            process = Process(target=run_combiner, args=(config, hdf5file, sigmavUL, sigmavUL_Jnuisance, parallel_simulation))
+            process = Process(target=run_combiner, args=(config, sigmavULs, sigmavULs_Jnuisance, parallel_simulation))
             jobs.append(process)
         try:
             # Start all parallel processes
@@ -199,23 +186,23 @@ if __name__ == "__main__":
             for j in jobs:
                 j.terminate()
                     
-    # Convert multiprocessing.managers.<>Dict to python 'dict'
-    sigmavUL = dict(sigmavUL)
-    sigmavUL_Jnuisance= dict(sigmavUL_Jnuisance)
+    # Convert multiprocessing.managers.DictProxy to python 'dict'
+    sigmavULs = dict(sigmavULs)
+    sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
     for channel in config['Configuration']['channels']:
-        svUL = {'masses': sigmavUL['masses']}
-        for key, value in dict(sigmavUL).items():
+        svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
+        for key, value in dict(sigmavULs).items():
             if channel in key: svUL[key.replace('{}_'.format(channel),'')] = value
         svUL = pd.DataFrame(data=svUL)
         # Write the panda DataFrames into the hdf5 file
-        svUL.to_hdf(hdf5file, key='{}/Combination/sigmavUL'.format(channel), mode='a')
+        svUL.to_hdf(hdf5file, key='{}/sigmavULs'.format(channel), mode='a')
         if config['Data']['J_nuisance']:
-            svUL_Jnuisance = {'masses': sigmavUL['masses']}
-            for key, value in dict(sigmavUL_Jnuisance).items():
+            svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
+            for key, value in dict(sigmavULs_Jnuisance).items():
                 if channel in key: svUL_Jnuisance[key.replace('{}_'.format(channel),'')] = value
             svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
             # Write the panda DataFrames into the hdf5 file
-            svUL_Jnuisance.to_hdf(hdf5file, key='{}/Combination/sigmavUL_Jnuisance'.format(channel), mode='a')
+            svUL_Jnuisance.to_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
     
     try:
         output_dir = config['Output']['output_directory']
@@ -228,3 +215,30 @@ if __name__ == "__main__":
         os.makedirs(output_dir)
         
     plot_sigmavULs(hdf5file, output_dir, config)
+    
+    if config['Output']['collaboration_plot']:
+        collaborations = config['Configuration']['collaborations']
+        for collaboration in collaborations:
+            config['Configuration']['collaborations'] = [collaboration]
+            sigmavULs = manager.dict()
+            sigmavULs_Jnuisance = manager.dict()
+            run_combiner(config, sigmavULs, sigmavULs_Jnuisance)
+            print("Combined {} limits (observational data)".format(collaboration))
+            # Convert multiprocessing.managers.DictProxy to python 'dict'
+            sigmavULs = dict(sigmavULs)
+            sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
+            for channel in config['Configuration']['channels']:
+                svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
+                svUL['data'] = sigmavULs['{}_data'.format(channel)]
+                svUL = pd.DataFrame(data=svUL)
+                # Write the panda DataFrames into the hdf5 file
+                svUL.to_hdf(hdf5file, key='{}/{}/sigmavULs'.format(channel,collaboration), mode='a')
+                if config['Data']['J_nuisance']:
+                    svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
+                    svUL_Jnuisance['data'] = sigmavULs_Jnuisance['{}_data'.format(channel)]
+                    svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
+                    # Write the panda DataFrames into the hdf5 file
+                    svUL_Jnuisance.to_hdf(hdf5file, key='{}/{}/sigmavULs_Jnuisance'.format(channel,collaboration), mode='a')
+                    
+        config['Configuration']['collaborations'] = collaborations
+        plot_sigmavULs_collaborations(hdf5file, output_dir, config)

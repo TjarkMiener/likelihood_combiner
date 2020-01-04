@@ -4,8 +4,6 @@ import os
 import pandas as pd
 from scipy.interpolate import interp1d
 
-from likelihood_combiner.reader import LklComReader,JFactor_Reader
-
 def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
     limits = {}
     sensitivities  = {}
@@ -51,7 +49,7 @@ def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
     return limits, sensitivities
 
 
-def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict):
+def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict, sigmav_min=1e-28, sigmav_max=1e-18):
     ts_dict_Jnuisance = {}
     for key, tstable in ts_dict.items():
         if np.all(tstable==0):
@@ -69,7 +67,7 @@ def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict):
             for sv in sigmav:
                 g = sv/np.power(10,l)
                 gSpline = lin_interpolation(g)
-                gLkl = np.where(((g>1e-28) & (g<1e-18)), gSpline,  np.nan)
+                gLkl = np.where(((g>sigmav_min) & (g<sigmav_max)), gSpline,  np.nan)
                 totLkl = gLkl + lLkl
                 ts_val.append(np.nanmin(totLkl))
             ts_val= np.array(ts_val)
@@ -80,15 +78,12 @@ def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict):
 def plot_sigmavULs(hdf5file, output_dir, config):
         
     channels = config['Configuration']['channels']
-    sources = config['Configuration']['sources']
-    collaborations = config['Configuration']['collaborations']
-
     # Corresponding LaTex notation
     channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
     
     for channel in channels:
-        sigmavULs = pd.read_hdf(hdf5file, key='{}/Combination/sigmavUL'.format(channel))
-        sigmavULs_Jnuisance = pd.read_hdf(hdf5file, key='{}/Combination/sigmavUL_Jnuisance'.format(channel))
+        sigmavULs = pd.read_hdf(hdf5file, key='{}/sigmavULs'.format(channel))
+        sigmavULs_Jnuisance = pd.read_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel))
         for ul_dict in [sigmavULs,sigmavULs_Jnuisance]:
         
             masses = np.squeeze(ul_dict[['masses']].to_numpy())
@@ -119,12 +114,11 @@ def plot_sigmavULs(hdf5file, output_dir, config):
                 y_low = np.nanmin(sv_minus2) * 0.5
                 y_up = np.nanmax(sv_plus2) * 2
                 ax.plot(masses,null_hypothesis,label=r'$ H_{0} $ median',c='k',linewidth=0.75,linestyle='--')
-                #plt.plot(thermalrelic_vals[0],thermalrelic_vals[1],label=r'Thermal relic cross section',c='r',linewidth=0.75,linestyle='--')
                 ax.fill_between(masses,sv_plus1,sv_minus1,color='green', alpha=0.5, linewidth=0)
                 ax.fill_between(masses,sv_plus1,sv_plus2,color='yellow', alpha=0.5, linewidth=0)
                 ax.fill_between(masses,sv_minus1,sv_minus2,color='yellow', alpha=0.5, linewidth=0)
             
-                #Dummy data
+                # Creating dummy data, which is needed for beautiful legend
                 dummy_val = np.ones(len(masses))*1e-32
                 plt.plot(masses,dummy_val,label='$ H_{0} \, 68\% $ containment',c='green', alpha=0.5, linewidth=6)
                 plt.plot(masses,dummy_val,label=r'$ H_{0} \, 95\% $ containment',c='yellow', alpha=0.5, linewidth=6)
@@ -161,3 +155,54 @@ def plot_sigmavULs(hdf5file, output_dir, config):
 
     return
     
+def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
+
+    channels = config['Configuration']['channels']
+    collaborations = config['Configuration']['collaborations']
+    # Corresponding LaTex notation
+    channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
+    
+    for channel in channels:
+        for table_name in ['sigmavULs', 'sigmavULs_Jnuisance']:
+            sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table_name))
+            masses = np.squeeze(sigmavULs[['masses']].to_numpy())
+            data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
+            
+            fig, ax = plt.subplots()
+            ax.plot(masses,data,label='Combined limit',c='k')
+            for collaboration in collaborations:
+                sigmavULs_col = pd.read_hdf(hdf5file, key='{}/{}/{}'.format(channel,collaboration,table_name))
+                masses_col = np.squeeze(sigmavULs_col[['masses']].to_numpy())
+                data_col = np.squeeze(sigmavULs_col[['data']].to_numpy())
+                ax.plot(masses_col,data_col,label='{} limit'.format(collaboration))
+                
+            ax.set_xscale('log')
+            ax.set_xbound(lower=masses[0],upper=masses[-1])
+            ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+            ax.set_yscale('log')
+            ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
+            if table_name == 'sigmavULs':
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J fixed')
+            else:
+                ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J as nuisance')
+
+            ax.text(0.2, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+            ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center',verticalalignment='center', transform=ax.transAxes)
+            # Shrink current axis by 20%
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        
+            # Put a legend to the right of the current axis
+            ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
+            ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
+            if table_name == 'sigmavULs':
+                plt.savefig('{}lklcom_{}_collaborations.pdf'.format(output_dir,channel))
+                print("Saved plot in {}lklcom_{}_collaborations.pdf".format(output_dir,channel))
+                plt.close()
+            else:
+                plt.savefig('{}lklcom_{}_Jnuisance_collaborations.pdf'.format(output_dir,channel))
+                print("Saved plot in {}lklcom_{}_Jnuisance_collaborations.pdf".format(output_dir,channel))
+                plt.close()
+            ax.clear()
+
+    return

@@ -4,7 +4,6 @@ Data:
   data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
   hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/lklcom.h5
   cl_bands: false
-  simu_directory: /Users/tmiener/Documents/likelihood_combiner/simu/
   simulations: 300
   J_nuisance: true
   JFactor_table: /Users/tmiener/Documents/likelihood_combiner/data/Jfactor_Geringer-SamethTable.txt
@@ -18,3 +17,4 @@ Configuration:
   collaborations: ['HAWC', 'FermiLAT', 'HESS', 'MAGIC', 'VERITAS']
 Output:
   output_directory: /Users/tmiener/Documents/likelihood_combiner/output/
+  collaboration_plot: true
