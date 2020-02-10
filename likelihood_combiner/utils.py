@@ -88,6 +88,8 @@ def plot_sigmavULs(hdf5file, output_dir, config):
         
             masses = np.squeeze(ul_dict[['masses']].to_numpy())
             data = np.squeeze(ul_dict[['data']].to_numpy())
+            if len(data)==0:
+                continue
             y_low = np.nanmin(data) * 0.5
             y_up = np.nanmax(data) * 2
         
@@ -167,6 +169,8 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
             sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table_name))
             masses = np.squeeze(sigmavULs[['masses']].to_numpy())
             data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
+            if len(data)==0:
+                continue
             
             fig, ax = plt.subplots()
             ax.plot(masses,data,label='Combined limit',c='k')
