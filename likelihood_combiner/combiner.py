@@ -216,7 +216,7 @@ if __name__ == "__main__":
         
     plot_sigmavULs(hdf5file, output_dir, config)
     
-    if config['Output']['collaboration_plot']:
+    if config['Output']['collaboration_plot'] and len(config['Configuration']['collaborations']) > 1:
         collaborations = config['Configuration']['collaborations']
         for collaboration in collaborations:
             config['Configuration']['collaborations'] = [collaboration]
