@@ -140,11 +140,11 @@ if __name__ == "__main__":
         config = yaml.safe_load(config_file)
 
     try:
-        hdf5file = config['Data']['hdf5_dataset']
+        hdf5file = config['Output']['hdf5_dataset']
         if hdf5file is None:
             raise KeyError
     except KeyError:
-        hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/lklcom.h5"))
+        hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../output/lklcom.h5"))
       
 
     # Create a multiprocessing.Manager dict to share memory between the parallel processes

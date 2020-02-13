@@ -2,7 +2,6 @@ Hardware:
   cpu_counts: all
 Data:
   data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
-  hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/data/lklcom.h5
   cl_bands: false
   simulations: 300
   J_nuisance: true
@@ -17,4 +16,5 @@ Configuration:
   collaborations: ['HAWC', 'FermiLAT', 'HESS', 'MAGIC', 'VERITAS']
 Output:
   output_directory: /Users/tmiener/Documents/likelihood_combiner/output/
+  hdf5_dataset: /Users/tmiener/Documents/likelihood_combiner/output/lklcom.h5
   collaboration_plot: true
