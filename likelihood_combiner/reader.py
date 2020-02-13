@@ -42,7 +42,10 @@ class LklComReader:
                     print(file_info)
                 
                 # Opening the txt files.
-                ts_file = open("{}/{}".format(path2txts+channel,file),"r")
+                if simulation == -1:
+                    ts_file = open("{}/{}".format(path2txts+channel,file),"r")
+                else:
+                    ts_file = open("{}/simulations/{}".format(path2txts+channel,file),"r")
                 
                 # Going through the table in the txt file and storing the entries in a 2D array.
                 values = np.array([[i for i in line.split()] for line in ts_file], dtype=np.float32).T

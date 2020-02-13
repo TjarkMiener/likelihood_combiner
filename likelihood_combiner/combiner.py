@@ -146,7 +146,7 @@ if __name__ == "__main__":
     except KeyError:
         hdf5file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/lklcom.h5"))
       
-    
+
     # Create a multiprocessing.Manager dict to share memory between the parallel processes
     manager = Manager()
     sigmavULs = manager.dict()
@@ -168,7 +168,7 @@ if __name__ == "__main__":
             cpu_counts = simulations
                 
         # Set up all processes
-        parallel_simulations = np.array_split(np.arange(simulations), cpu_counts)
+        parallel_simulations = np.array_split(np.arange(1,simulations+1), cpu_counts)
         jobs = []
         for parallel_simulation in parallel_simulations:
             process = Process(target=run_combiner, args=(config, sigmavULs, sigmavULs_Jnuisance, parallel_simulation))
@@ -203,7 +203,7 @@ if __name__ == "__main__":
             svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
             # Write the panda DataFrames into the hdf5 file
             svUL_Jnuisance.to_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
-    
+
     try:
         output_dir = config['Output']['output_directory']
         if output_dir is None:

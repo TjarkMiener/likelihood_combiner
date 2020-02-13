@@ -79,18 +79,21 @@ def plot_sigmavULs(hdf5file, output_dir, config):
         
     channels = config['Configuration']['channels']
     # Corresponding LaTex notation
-    channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
+    channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'hh':'H^{0}H^{0}', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
     
     for channel in channels:
         sigmavULs = pd.read_hdf(hdf5file, key='{}/sigmavULs'.format(channel))
-        sigmavULs_Jnuisance = pd.read_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel))
+        sigmavULs_Jnuisance = {}
+        if config['Data']['J_nuisance']:
+            sigmavULs_Jnuisance = pd.read_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel))
         for ul_dict in [sigmavULs,sigmavULs_Jnuisance]:
-        
+            if not ul_dict:
+                continue 
             masses = np.squeeze(ul_dict[['masses']].to_numpy())
             data = np.squeeze(ul_dict[['data']].to_numpy())
             if len(data)==0:
                 continue
-            y_low = np.nanmin(data) * 0.5
+            y_low = 1e-26
             y_up = np.nanmax(data) * 2
         
             fig, ax = plt.subplots()
@@ -98,22 +101,20 @@ def plot_sigmavULs(hdf5file, output_dir, config):
             if config['Data']['cl_bands']:
                 simulations = config['Data']['simulations']
                 # Calculate the median (null hypothesis)
-                null_hypothesis = np.squeeze(ul_dict[['simu0']].to_numpy())
-                for simulation in np.arange(1,simulations):
-                    null_hypothesis += np.squeeze(ul_dict[['simu{}'.format(simulation)]].to_numpy())
-                null_hypothesis /= simulations
-                # Calculate the standard deviation
-                sigma = np.power(null_hypothesis - np.squeeze(ul_dict[['simu0']].to_numpy()), 2)
-                for simulation in np.arange(simulations):
-                    sigma += np.power(null_hypothesis - np.squeeze(ul_dict[['simu{}'.format(simulation)]].to_numpy()), 2)
-                sigma = np.sqrt(sigma/simulation)
-                # Calculate the CL bands
-                sv_plus1 = null_hypothesis + sigma
-                sv_minus1 = null_hypothesis - sigma
-                sv_plus2 = null_hypothesis + 2*sigma
-                sv_minus2 = null_hypothesis - 2*sigma
+                null_hypothesis, sv_plus1, sv_minus1, sv_plus2, sv_minus2 = [],[],[],[],[]
+                nh_index = np.int(simulations/2)
+                svp1_index = simulations-np.int(0.5+16*simulations/100)
+                svm1_index = np.int(16*simulations/100)
+                svp2_index = simulations-np.int(0.5+2.5*simulations/100)
+                svm2_index = np.int(2.5*simulations/100)
+                for mass in np.arange(len(np.squeeze(ul_dict[['masses']].to_numpy(dtype=np.float32)))):
+                    uls_mass = np.sort([np.squeeze(ul_dict[['simu{}'.format(simulation)]].to_numpy(dtype=np.float32))[mass] for simulation in np.arange(1,simulations)])
+                    null_hypothesis.append(uls_mass[nh_index])
+                    sv_plus1.append(uls_mass[svp1_index])
+                    sv_minus1.append(uls_mass[svm1_index])
+                    sv_plus2.append(uls_mass[svp2_index])
+                    sv_minus2.append(uls_mass[svm2_index])
 
-                y_low = np.nanmin(sv_minus2) * 0.5
                 y_up = np.nanmax(sv_plus2) * 2
                 ax.plot(masses,null_hypothesis,label=r'$ H_{0} $ median',c='k',linewidth=0.75,linestyle='--')
                 ax.fill_between(masses,sv_plus1,sv_minus1,color='green', alpha=0.5, linewidth=0)
@@ -124,13 +125,20 @@ def plot_sigmavULs(hdf5file, output_dir, config):
                 dummy_val = np.ones(len(masses))*1e-32
                 plt.plot(masses,dummy_val,label='$ H_{0} \, 68\% $ containment',c='green', alpha=0.5, linewidth=6)
                 plt.plot(masses,dummy_val,label=r'$ H_{0} \, 95\% $ containment',c='yellow', alpha=0.5, linewidth=6)
+
+                # Plot the thermal relic, which was taken from Steigman G., Dasgupta B, and Beacom J. F., 
+                # Precise relic WIMP abundance and its impact onsearches for dark matter annihilation, 
+                # Phys.Rev. D86(2012) 023506, [arXiv:1204.3622]
+                thermal_relic_mass = [1.00e-01, 1.78e-01, 3.16e-01, 5.62e-01, 1.00e+00, 1.78e+00, 3.16e+00, 5.62e+00, 1.00e+01, 1.78e+01, 3.16e+01, 5.62e+01, 1.00e+02, 1.78e+02, 3.16e+02, 5.62e+02, 1.00e+03, 1.78e+03,3.16e+03, 5.62e+03, 1.00e+04, 1.00e+05]
+                thermal_relic_sigmav = [4.8e-26, 4.9e-26, 5.1e-26, 5.0e-26, 4.7e-26, 4.5e-26, 3.9e-26, 2.8e-26, 2.5e-26, 2.3e-26, 2.2e-26, 2.2e-26, 2.2e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26,2.4e-26, 2.4e-26]
+                plt.plot(thermal_relic_mass,thermal_relic_sigmav,label=r'Thermal relic $\langle\sigma v\rangle$',c='r',linewidth=1.5,linestyle='--')
             
             ax.set_xscale('log')
             ax.set_xbound(lower=masses[0],upper=masses[-1])
             ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
             ax.set_yscale('log')
             ax.set_ybound(lower=y_low,upper=y_up)
-            ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
+            ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
             if ul_dict is sigmavULs:
                 ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J fixed')
             else:
@@ -184,7 +192,7 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
             ax.set_xbound(lower=masses[0],upper=masses[-1])
             ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
             ax.set_yscale('log')
-            ax.set_ylabel(r'$95\%$ CL $\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
+            ax.set_ylabel(r'$\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
             if table_name == 'sigmavULs':
                 ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J fixed')
             else:
