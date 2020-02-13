@@ -137,7 +137,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
                                      
     with open(args.config_file, 'r') as config_file:
-        config = yaml.load(config_file)
+        config = yaml.safe_load(config_file)
 
     try:
         hdf5file = config['Data']['hdf5_dataset']

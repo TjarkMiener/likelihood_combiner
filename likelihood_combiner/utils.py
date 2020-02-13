@@ -87,7 +87,7 @@ def plot_sigmavULs(hdf5file, output_dir, config):
         if config['Data']['J_nuisance']:
             sigmavULs_Jnuisance = pd.read_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel))
         for ul_dict in [sigmavULs,sigmavULs_Jnuisance]:
-            if not ul_dict:
+            if not dict(ul_dict):
                 continue 
             masses = np.squeeze(ul_dict[['masses']].to_numpy())
             data = np.squeeze(ul_dict[['data']].to_numpy())

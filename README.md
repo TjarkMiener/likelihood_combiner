@@ -34,10 +34,11 @@ NOTE for developers: If you wish to fork/clone the respository and make changes 
 
 ### Dependencies
 
-- Python 3.7.3
+- Python 3.X
 - NumPy
 - SciPy
 - Pandas
+- PyTables
 - PyYAML
 - Matplotlib
   
@@ -57,7 +58,7 @@ import yaml
 from likelihood_combiner.combiner import run_combiner
   
 with open('</installation/path>/config/config.yml', 'r') as myconfig:
-    config = yaml.load(myconfig)
+    config = yaml.safe_load(myconfig)
 run_combiner(config)
 ```
   
