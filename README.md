@@ -1,5 +1,7 @@
 # LikelihoodCombiner: Combining likelihoods from different experiments.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3666282.svg)](https://doi.org/10.5281/zenodo.3666282)
+
 ![Gloryduck logo](images/Gloryduck_logo.png)
 
 **LikelihoodCombiner** is a package under active development to combine likelihoods from different experiments. The main target of this package is the **Gloryduck** project. This project joint analysis of gamma-ray data from [*Fermi*-LAT](https://glast.sites.stanford.edu/), [HAWC](https://www.hawc-observatory.org/), [H.E.S.S.](https://www.mpi-hd.mpg.de/hfm/HESS/), [MAGIC](https://magic.mpp.mpg.de/) and [VERITAS](https://veritas.sao.arizona.edu/) to search for gamma-ray signals from dark matter annihilation in dwarf satellite galaxies.
