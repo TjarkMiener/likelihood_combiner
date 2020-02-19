@@ -4,12 +4,12 @@ import pandas as pd
 
 class LklComReader:
     def __init__(self,
-                 channels,
+                 channel,
                  sources,
                  collaborations,
                  angular_separation=None):
 
-        self.channels = channels
+        self.channel = channel
         self.sources = sources
         self.collaborations = collaborations
         
@@ -21,47 +21,47 @@ class LklComReader:
     def read_tstables(self, path2txts, simulation=-1):
     
         tstables = {}
-        for channel in self.channels:
+
+        if simulation == -1:
+            files = np.array([x for x in os.listdir(path2txts+self.channel) if x.endswith(".txt")])
+        else:
+            files = np.array([x for x in os.listdir(path2txts+self.channel+"/simulations/") if x.endswith(".txt")])
+        for file in files:
+            # Parsing the file names and checking validation.
             if simulation == -1:
-                files = np.array([x for x in os.listdir(path2txts+channel) if x.endswith(".txt")])
+                file_key = file.replace('.txt','')
+                file_info = file_key.split("_")
             else:
-                files = np.array([x for x in os.listdir(path2txts+channel+"/simulations/") if x.endswith(".txt")])
-            for file in files:
-                # Parsing the file names and checking validation.
-                if simulation == -1:
-                    file_key = file.replace('.txt','')
-                    file_info = file_key.split("_")
-                else:
-                    file_key = file.replace('_{}.txt'.format(simulation),'')
-                    file_info = file_key.split("_")
-                if file_info[0] != channel or file_info[1] not in self.sources or file_info[2] not in self.collaborations:
-                    continue
+                file_key = file.replace('_{}.txt'.format(simulation),'')
+                file_info = file_key.split("_")
+            if file_info[0] != self.channel or file_info[1] not in self.sources or file_info[2] not in self.collaborations:
+                continue
                     
-                # Printing the files, which are included in the combination
-                if simulation == -1:
-                    print(file_info)
+            # Printing the files, which are included in the combination
+            if simulation == -1:
+                print(file_info)
                 
-                # Opening the txt files.
-                if simulation == -1:
-                    ts_file = open("{}/{}".format(path2txts+channel,file),"r")
-                else:
-                    ts_file = open("{}/simulations/{}".format(path2txts+channel,file),"r")
+            # Opening the txt files.
+            if simulation == -1:
+                ts_file = open("{}/{}".format(path2txts+self.channel,file),"r")
+            else:
+                ts_file = open("{}/simulations/{}".format(path2txts+self.channel,file),"r")
                 
-                # Going through the table in the txt file and storing the entries in a 2D array.
-                values = np.array([[i for i in line.split()] for line in ts_file], dtype=np.float32).T
+            # Going through the table in the txt file and storing the entries in a 2D array.
+            values = np.array([[i for i in line.split()] for line in ts_file], dtype=np.float32).T
                     
-                # The first entry of each row correponds to the mass.
-                # Detect the first entry and store it in a separate array.
-                mass = np.array([values[i][0] for i in np.arange(0,values.shape[0],1)], dtype=np.float32)
+            # The first entry of each row correponds to the mass.
+            # Detect the first entry and store it in a separate array.
+            mass = np.array([values[i][0] for i in np.arange(0,values.shape[0],1)], dtype=np.float32)
                 
-                # Delete the first entry, so only TS values are stored in ts_val.
-                ts_val = []
-                for val in values:
-                    ts_val.append(val[1:])
+            # Delete the first entry, so only TS values are stored in ts_val.
+            ts_val = []
+            for val in values:
+                ts_val.append(val[1:])
                 
-                # Store the arrays in the dictionary.
-                tstables[file_key+'_ts'] = np.array(ts_val, dtype=np.float32)
-                tstables[file_key+'_masses'] = mass
+            # Store the arrays in the dictionary.
+            tstables[file_key+'_ts'] = np.array(ts_val, dtype=np.float32)
+            tstables[file_key+'_masses'] = mass
         return tstables
     
     def read_JFactor(self, JFactor_file):

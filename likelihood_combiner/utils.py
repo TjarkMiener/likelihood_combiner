@@ -99,16 +99,16 @@ def plot_sigmavULs(hdf5file, output_dir, config):
             fig, ax = plt.subplots()
             ax.plot(masses,data,label='Combined limit',c='k')
             if config['Data']['cl_bands']:
-                simulations = config['Data']['simulations']
+                simulations = len(ul_dict.columns)-2
                 # Calculate the median (null hypothesis)
                 null_hypothesis, sv_plus1, sv_minus1, sv_plus2, sv_minus2 = [],[],[],[],[]
-                nh_index = np.int(simulations/2)
-                svp1_index = simulations-np.int(0.5+16*simulations/100)
-                svm1_index = np.int(16*simulations/100)
-                svp2_index = simulations-np.int(0.5+2.5*simulations/100)
-                svm2_index = np.int(2.5*simulations/100)
-                for mass in np.arange(len(np.squeeze(ul_dict[['masses']].to_numpy(dtype=np.float32)))):
-                    uls_mass = np.sort([np.squeeze(ul_dict[['simu{}'.format(simulation)]].to_numpy(dtype=np.float32))[mass] for simulation in np.arange(1,simulations)])
+                nh_index = np.int(simulations/2)-1
+                svp1_index = simulations-np.int(16*simulations/100)-1
+                svm1_index = np.int(0.5+16*simulations/100)-1
+                svp2_index = simulations-np.int(2.5*simulations/100)-1
+                svm2_index = np.int(0.5+2.5*simulations/100)-1
+                for ind in np.arange(len(masses)):
+                    uls_mass = np.sort(ul_dict.iloc[ind,2:])
                     null_hypothesis.append(uls_mass[nh_index])
                     sv_plus1.append(uls_mass[svp1_index])
                     sv_minus1.append(uls_mass[svm1_index])
@@ -218,3 +218,13 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
             ax.clear()
 
     return
+
+
+def progress_bar(current_value, total):
+    increments = 50
+    percentual = ((current_value/ total) * 100)
+    i = np.int(percentual // (100 / increments ))
+    percentual = np.int(percentual)
+    text = "\r[{0: <{1}}] {2}%".format('=' * i, increments, percentual)
+    print(text, end="\n" if percentual == 100 else "")
+
