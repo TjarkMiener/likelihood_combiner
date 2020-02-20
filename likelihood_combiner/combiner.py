@@ -237,12 +237,12 @@ if __name__ == "__main__":
             config['Configuration']['collaborations'] = [collaboration]
             sigmavULs = manager.dict()
             sigmavULs_Jnuisance = manager.dict()
-            run_combiner(config, sigmavULs, sigmavULs_Jnuisance)
-            print("Combined {} limits (observational data)".format(collaboration))
-            # Convert multiprocessing.managers.DictProxy to python 'dict'
-            sigmavULs = dict(sigmavULs)
-            sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
             for channel in config['Configuration']['channels']:
+                run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance)
+                print("Combined {} limits (observational data)".format(collaboration))
+                # Convert multiprocessing.managers.DictProxy to python 'dict'
+                sigmavULs = dict(sigmavULs)
+                sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
                 svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
                 svUL['data'] = sigmavULs['{}_data'.format(channel)]
                 svUL = pd.DataFrame(data=svUL)

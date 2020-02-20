@@ -82,24 +82,21 @@ def plot_sigmavULs(hdf5file, output_dir, config):
     channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'hh':'H^{0}H^{0}', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
     
     for channel in channels:
-        sigmavULs = pd.read_hdf(hdf5file, key='{}/sigmavULs'.format(channel))
-        sigmavULs_Jnuisance = {}
+        tables = ['sigmavULs']
         if config['Data']['J_nuisance']:
-            sigmavULs_Jnuisance = pd.read_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel))
-        for ul_dict in [sigmavULs,sigmavULs_Jnuisance]:
-            if not dict(ul_dict):
-                continue 
-            masses = np.squeeze(ul_dict[['masses']].to_numpy())
-            data = np.squeeze(ul_dict[['data']].to_numpy())
-            if len(data)==0:
-                continue
+            tables.append('sigmavULs_Jnuisance')
+        for table in tables:
+            sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table))
+            masses = np.squeeze(sigmavULs[['masses']].to_numpy())
+            data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
+         
             y_low = 1e-26
             y_up = np.nanmax(data) * 2
         
             fig, ax = plt.subplots()
             ax.plot(masses,data,label='Combined limit',c='k')
             if config['Data']['cl_bands']:
-                simulations = len(ul_dict.columns)-2
+                simulations = len(sigmavULs.columns)-2
                 # Calculate the median (null hypothesis)
                 null_hypothesis, sv_plus1, sv_minus1, sv_plus2, sv_minus2 = [],[],[],[],[]
                 nh_index = np.int(simulations/2)-1
@@ -108,7 +105,7 @@ def plot_sigmavULs(hdf5file, output_dir, config):
                 svp2_index = simulations-np.int(2.5*simulations/100)-1
                 svm2_index = np.int(0.5+2.5*simulations/100)-1
                 for ind in np.arange(len(masses)):
-                    uls_mass = np.sort(ul_dict.iloc[ind,2:])
+                    uls_mass = np.sort(sigmavULs.iloc[ind,2:])
                     null_hypothesis.append(uls_mass[nh_index])
                     sv_plus1.append(uls_mass[svp1_index])
                     sv_minus1.append(uls_mass[svm1_index])
@@ -139,7 +136,7 @@ def plot_sigmavULs(hdf5file, output_dir, config):
             ax.set_yscale('log')
             ax.set_ybound(lower=y_low,upper=y_up)
             ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
-            if ul_dict is sigmavULs:
+            if table == 'sigmavULs':
                 ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J fixed')
             else:
                 ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J as nuisance')
@@ -153,7 +150,7 @@ def plot_sigmavULs(hdf5file, output_dir, config):
             # Put a legend to the right of the current axis
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
             ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
-            if ul_dict is sigmavULs:
+            if table == 'sigmavULs':
                 plt.savefig('{}lklcom_{}.pdf'.format(output_dir,channel))
                 print("Saved plot in {}lklcom_{}.pdf".format(output_dir,channel))
                 plt.close()
@@ -173,17 +170,18 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
     channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
     
     for channel in channels:
-        for table_name in ['sigmavULs', 'sigmavULs_Jnuisance']:
-            sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table_name))
+        tables = ['sigmavULs']
+        if config['Data']['J_nuisance']:
+            tables.append('sigmavULs_Jnuisance')
+        for table in tables:
+            sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table))
             masses = np.squeeze(sigmavULs[['masses']].to_numpy())
             data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
-            if len(data)==0:
-                continue
             
             fig, ax = plt.subplots()
             ax.plot(masses,data,label='Combined limit',c='k')
             for collaboration in collaborations:
-                sigmavULs_col = pd.read_hdf(hdf5file, key='{}/{}/{}'.format(channel,collaboration,table_name))
+                sigmavULs_col = pd.read_hdf(hdf5file, key='{}/{}/{}'.format(channel,collaboration,table))
                 masses_col = np.squeeze(sigmavULs_col[['masses']].to_numpy())
                 data_col = np.squeeze(sigmavULs_col[['data']].to_numpy())
                 ax.plot(masses_col,data_col,label='{} limit'.format(collaboration))
@@ -193,7 +191,7 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
             ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
             ax.set_yscale('log')
             ax.set_ylabel(r'$\langle\sigma v\rangle^{UL} \, [cm^{3}/s]$')
-            if table_name == 'sigmavULs':
+            if table == 'sigmavULs':
                 ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J fixed')
             else:
                 ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J as nuisance')
@@ -207,7 +205,7 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
             # Put a legend to the right of the current axis
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
             ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
-            if table_name == 'sigmavULs':
+            if table == 'sigmavULs':
                 plt.savefig('{}lklcom_{}_collaborations.pdf'.format(output_dir,channel))
                 print("Saved plot in {}lklcom_{}_collaborations.pdf".format(output_dir,channel))
                 plt.close()
