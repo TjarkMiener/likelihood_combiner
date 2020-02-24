@@ -15,10 +15,10 @@ class LklComReader:
         
         # Define the angular separation from dwarf center:
         if angular_separation is None:
-            angular_separation = 0.53086117
+            angular_separation = 2.6
         self.angular_separation = angular_separation
     
-    def read_tstables(self, path2txts, simulation=-1):
+    def read_tstables(self, path2txts, logJ, simulation=-1):
     
         tstables = {}
 
@@ -37,7 +37,7 @@ class LklComReader:
             if file_info[0] != self.channel or file_info[1] not in self.sources or file_info[2] not in self.collaborations:
                 continue
                     
-            # Printing the files, which are included in the combination
+            # Printing the files, which are included in the combination.
             if simulation == -1:
                 print(file_info)
                 
@@ -49,18 +49,25 @@ class LklComReader:
                 
             # Going through the table in the txt file and storing the entries in a 2D array.
             values = np.array([[i for i in line.split()] for line in ts_file], dtype=np.float32).T
-                    
+
+            # The first element of the first row correpond to the logJ-Factor. 
+            logJ_file = np.float32(values[0][0])
+
             # The first entry of each row correponds to the mass.
             # Detect the first entry and store it in a separate array.
-            mass = np.array([values[i][0] for i in np.arange(0,values.shape[0],1)], dtype=np.float32)
+            mass = np.array([values[i][0] for i in np.arange(values.shape[0])], dtype=np.float32)
                 
             # Delete the first entry, so only TS values are stored in ts_val.
+            # Re-scale the sigmav values, if the logJ is not matching with the total logJ-Factor.
             ts_val = []
             for val in values:
                 ts_val.append(val[1:])
-                
+            ts_val = np.array(ts_val, dtype=np.float32)
+            if logJ[file_info[1]] != logJ_file:
+                ts_val[0] *= np.power(10.0,logJ_file)/np.power(10.0,logJ[file_info[1]])
+
             # Store the arrays in the dictionary.
-            tstables[file_key+'_ts'] = np.array(ts_val, dtype=np.float32)
+            tstables[file_key+'_ts'] = ts_val
             tstables[file_key+'_masses'] = mass
         return tstables
     
@@ -76,8 +83,8 @@ class LklComReader:
                     source_GS = line[:18].replace(" ", "")
                     line = line[18:].split()
                     if source == source_GS and float(line[0]) == self.angular_separation:
-                        sources_logJ[source] = float(line[3])
-                        sources_DlogJ[source] = float(line[3]) - float(line[2])
+                        sources_logJ[source] = np.float32(line[3])
+                        sources_DlogJ[source] = np.float32(line[3]) - np.float32(line[2])
                         file.close()
                         break
         return sources_logJ,sources_DlogJ

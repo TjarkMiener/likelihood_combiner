@@ -26,15 +26,14 @@ def run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance, simulation_cou
     # Initializing the LklComReader
     reader = LklComReader(channel, sources, collaborations)
     
-    if jnuisance:
-        try:
-            JFactor_file = config['Data']['JFactor_table']
-            if JFactor_file is None:
-                raise KeyError
-        except KeyError:
-            JFactor_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/Jfactor_Geringer-SamethTable.txt"))
+    try:
+        JFactor_file = config['Data']['JFactor_table']
+        if JFactor_file is None:
+            raise KeyError
+    except KeyError:
+        JFactor_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/Jfactor_Geringer-SamethTable.txt"))
             
-        sources_logJ,sources_DlogJ = reader.read_JFactor(JFactor_file)
+    sources_logJ,sources_DlogJ = reader.read_JFactor(JFactor_file)
 
     # Reading in the the sigmav range and spacing. Round of the third digit to avoid an interpolation.
     sigmavMin = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_min'])))).astype(int))).astype(int)
@@ -47,7 +46,7 @@ def run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance, simulation_cou
 
     for simulation in simulations:
     
-        tstables = reader.read_tstables(data_dir, simulation)
+        tstables = reader.read_tstables(data_dir, sources_logJ,simulation)
 
 
         combined_ts = {}
