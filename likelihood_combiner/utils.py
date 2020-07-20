@@ -8,7 +8,7 @@ def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
     limits = {}
     sensitivities  = {}
     for key, tstable in ts_dict.items():
-        if np.all(tstable==0):
+        if np.all(tstable==0) or tstable[-1] < confidence_level:
             limits[key] = np.nan
             sensitivities[key] = np.nan
         else:
@@ -52,7 +52,7 @@ def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
 def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict, sigmav_min=1e-28, sigmav_max=1e-18):
     ts_dict_Jnuisance = {}
     for key, tstable in ts_dict.items():
-        if np.all(tstable==0):
+        if np.all(tstable==tstable[0]):
             ts_dict_Jnuisance[key] = tstable
         else:
             source = key.split("_")
@@ -75,12 +75,16 @@ def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict, sigmav_min=1e-28, sigmav_max=
             ts_dict_Jnuisance[key] = ts_val - dis
     return ts_dict_Jnuisance
 
-def plot_sigmavULs(hdf5file, output_dir, config):
-        
-    channels = config['Configuration']['channels']
+def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
+
+    if channel is None:
+        channels = config['Configuration']['channels']
+    else:
+        channels = [channel]
+
     # Corresponding LaTex notation
     channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'hh':'H^{0}H^{0}', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
-    
+
     for channel in channels:
         tables = ['sigmavULs']
         if config['Data']['J_nuisance']:
@@ -89,10 +93,10 @@ def plot_sigmavULs(hdf5file, output_dir, config):
             sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table))
             masses = np.squeeze(sigmavULs[['masses']].to_numpy())
             data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
-         
+
             y_low = 1e-26
             y_up = np.nanmax(data) * 2
-        
+
             fig, ax = plt.subplots()
             ax.plot(masses,data,label='Combined limit',c='k')
             if config['Data']['cl_bands']:
@@ -141,12 +145,16 @@ def plot_sigmavULs(hdf5file, output_dir, config):
             else:
                 ax.set_title(r'$\langle\sigma v\rangle$ ULs vs mass - J as nuisance')
 
-            ax.text(0.2, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+            if len(config['Configuration']['sources']) == 1:
+                ax.text(0.2, 0.85, config['Configuration']['sources'][0], fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+            else:
+                ax.text(0.2, 0.85, 'All dSphs', fontsize=18,horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+
             ax.text(0.85, 0.1, r'$\chi\chi \to {}$'.format(channels_LaTex[str(channel)]), fontsize=15,horizontalalignment='center',verticalalignment='center', transform=ax.transAxes)
             # Shrink current axis by 20%
             box = ax.get_position()
             ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        
+
             # Put a legend to the right of the current axis
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
             ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)

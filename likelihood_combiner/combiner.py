@@ -18,7 +18,6 @@ def run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance, simulation_cou
     except KeyError:
         data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/"))
 
-
     sources = config['Configuration']['sources']
     collaborations = config['Configuration']['collaborations']
     jnuisance = config['Data']['J_nuisance']
@@ -46,7 +45,7 @@ def run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance, simulation_cou
 
     for simulation in simulations:
     
-        tstables = reader.read_tstables(data_dir, sources_logJ,simulation)
+        tstables = reader.read_tstables(data_dir, sources_logJ, simulation)
 
 
         combined_ts = {}
@@ -66,35 +65,31 @@ def run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance, simulation_cou
                     for i,e in enumerate(exponent):
                         sigmavFile[i] = np.around(sigmavFile[i],decimals=e)
                     sigmavFile = sigmavFile[::-1]
-                    source_ts_dict = {}
                     for i,m in enumerate(masses[1:]):
                         if m not in mass_axis:
                             mass_axis.append(m)
-                        if not np.array_equal(sigmav,sigmavFile):
-                            lin_interpolation = interp1d(sigmavFile, tstable[i+1][::-1], kind='linear', fill_value='extrapolate')
-                            source_ts_dict[source+"_"+str(m)] = lin_interpolation(sigmav)
-                        else:
-                            source_ts_dict[source+"_"+str(m)] = tstable[i+1][::-1]
-                        if source+"_"+str(m) in combined_source_ts:
-                            combined_source_ts[source+"_"+str(m)] += source_ts_dict[source+"_"+str(m)]
-                        else:
-                            combined_source_ts[source+"_"+str(m)] = source_ts_dict[source+"_"+str(m)]
-        
+                        if source+"_"+str(m) not in combined_source_ts:
+                            combined_source_ts[source+"_"+str(m)] = np.zeros(len(sigmav))
+                        ts_values = tstable[i+1][::-1]
+                        if not np.all(ts_values == ts_values[0]):
+                            if not np.array_equal(sigmav,sigmavFile):
+                                lin_interpolation = interp1d(sigmavFile, ts_values, kind='linear', fill_value='extrapolate')
+                                ts_values = lin_interpolation(sigmav)
+                            combined_source_ts[source+"_"+str(m)] += ts_values
             if jnuisance:
                 combined_source_ts_Jnuisance = compute_Jnuisance(sigmav, combined_source_ts, sources_DlogJ)
                 combined_source_limits_Jnuisance,combined_source_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_source_ts_Jnuisance)
             for m in mass_axis:
-                if str(m) in combined_ts:
-                    if source+"_"+str(m) in combined_source_ts:
+                if str(m) not in combined_ts:
+                    combined_ts[str(m)] = np.zeros(len(sigmav))
+                    if jnuisance:
+                        combined_ts_Jnuisance[str(m)] = np.zeros(len(sigmav))
+                if source+"_"+str(m) in combined_source_ts:
+                    if not np.all(combined_source_ts[source+"_"+str(m)] == combined_source_ts[source+"_"+str(m)][0]):
                         combined_ts[str(m)] += combined_source_ts[source+"_"+str(m)]
                         if jnuisance:
                             combined_ts_Jnuisance[str(m)] += combined_source_ts_Jnuisance[source+"_"+str(m)]
-                else:
-                    if source+"_"+str(m) in combined_source_ts:
-                        combined_ts[str(m)] = combined_source_ts[source+"_"+str(m)]
-                        if jnuisance:
-                            combined_ts_Jnuisance[str(m)] = combined_source_ts_Jnuisance[source+"_"+str(m)]
-            
+
         combined_sources_limits,combined_sources_sensitivity = compute_sensitivity(sigmav, combined_ts)
         if jnuisance:
             combined_sources_limits_Jnuisance,combined_sources_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_ts_Jnuisance)
@@ -119,7 +114,7 @@ def run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance, simulation_cou
 
         sigmavULs[h5_key] = svUL
         sigmavULs_Jnuisance[h5_key] = svUL_Jnuisance
-            
+
         if simulation >= 0:
             simulation_counter.value += 1
             progress_bar(simulation_counter.value,np.int(config['Data']['simulations']))
@@ -128,15 +123,15 @@ def run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance, simulation_cou
     return
 
 if __name__ == "__main__":
-    
+
     parser = argparse.ArgumentParser(
             description=("Combining likelihoods from different experiments."))
     parser.add_argument(
             'config_file',
             help="path to YAML configuration file with combining options")
-        
+
     args = parser.parse_args()
-                                     
+
     with open(args.config_file, 'r') as config_file:
         config = yaml.safe_load(config_file)
 
@@ -165,12 +160,12 @@ if __name__ == "__main__":
     # Set up the path to the hdf5 file
     hdf5file = output_dir + hdf5filename
 
-    # Create a multiprocessing.Manager dict to share memory between the parallel processes
-    manager = Manager()
-    sigmavULs = manager.dict()
-    sigmavULs_Jnuisance = manager.dict()
     # Combining limits using real observational data sets
     for channel in config['Configuration']['channels']:
+        # Create a multiprocessing.Manager dict to share memory between the parallel processes
+        manager = Manager()
+        sigmavULs = manager.dict()
+        sigmavULs_Jnuisance = manager.dict()
         print("Observations for the '{}' channel:".format(channel))
         run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance)
         print("Combined limits for observational data!")
@@ -186,7 +181,7 @@ if __name__ == "__main__":
             simulations = np.int(config['Data']['simulations'])
             if cpu_counts > simulations:
                 cpu_counts = simulations
-                
+
             # Set up all processes
             simulation_counter = manager.Value("i", 0)
             print("Combining {} simulations:".format(simulations))
@@ -203,16 +198,16 @@ if __name__ == "__main__":
                 # Wait for all processes to complete
                 for j in jobs:
                     j.join()
-                
+
             except KeyboardInterrupt:
                 print("Caught keyboard interrupt, killing all processes...")
                 for j in jobs:
                     j.terminate()
-                    
-    # Convert multiprocessing.managers.DictProxy to python 'dict'
-    sigmavULs = dict(sigmavULs)
-    sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
-    for channel in config['Configuration']['channels']:
+
+        # Convert multiprocessing.managers.DictProxy to python 'dict'
+        sigmavULs = dict(sigmavULs)
+        sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
+
         svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
         for key, value in dict(sigmavULs).items():
             if channel in key: svUL[key.replace('{}_'.format(channel),'')] = value
@@ -227,9 +222,9 @@ if __name__ == "__main__":
             # Write the panda DataFrames into the hdf5 file
             svUL_Jnuisance.to_hdf(hdf5file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
 
-    # Plot the sigmav upper limits    
-    plot_sigmavULs(hdf5file, output_dir, config)
-    
+        # Plot the sigmav upper limits
+        plot_sigmavULs(hdf5file, output_dir, config, channel)
+
     if config['Output']['collaboration_plot'] and len(config['Configuration']['collaborations']) > 1:
         collaborations = config['Configuration']['collaborations']
         for collaboration in collaborations:
@@ -253,6 +248,6 @@ if __name__ == "__main__":
                     svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
                     # Write the panda DataFrames into the hdf5 file
                     svUL_Jnuisance.to_hdf(hdf5file, key='{}/{}/sigmavULs_Jnuisance'.format(channel,collaboration), mode='a')
-                    
+
         config['Configuration']['collaborations'] = collaborations
         plot_sigmavULs_collaborations(hdf5file, output_dir, config)
