@@ -57,11 +57,11 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
                     del DlogJ[source][collaboration]
 
             # Compute the actual uncertainties, which is introduced in the combination.
-            # Therefore we have to sort the DlogJ[source] in descending order and compute the
-            # actual uncertainty using DlogJ_diff = (DlogJ[source]^2 - DlogJ_next[source]^2)^1/2.
-            # For the last element DlogJ_diff is set to DlogJ[source]. After this computation,
-            # DlogJ[source] holds a 2D array per collaboration with the uncertainty for a single
-            # analysis and the uncertainty for the combined analysis.
+            # Therefore, we have to sort the DlogJ[source] in descending order and compute the
+            # actual uncertainty using DlogJ_diff = (DlogJ^2 - DlogJ_next^2)^1/2. For the last
+            # element DlogJ_diff is set to (the smallest) DlogJ.
+            # After this computation, DlogJ[source] holds a 2D array per collaboration with the
+            # uncertainty for a single analysis and the uncertainty for the combined analysis.
             if jnuisance:
                 DlogJ[source] = dict(sorted(DlogJ[source].items(), key=lambda x: x[1], reverse=True))
                 prev_collaboration = None
