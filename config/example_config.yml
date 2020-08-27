@@ -13,7 +13,7 @@ Data:
 Configuration:
   channels: ['bb', 'mumu', 'tautau', 'WW']
   sources: ['Segue1', 'UrsaMajorII']
-  collaborations: ['IACT']
+  collaborations: {'IACT': 2.6}
 Output:
   output_directory: /Users/tmiener/Documents/likelihood_combiner/output/
   hdf5_dataset: lklcom.h5

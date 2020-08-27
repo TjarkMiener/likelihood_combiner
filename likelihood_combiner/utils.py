@@ -49,31 +49,25 @@ def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
     return limits, sensitivities
 
 
-def compute_Jnuisance(sigmav, ts_dict, DlogJ_dict, sigmav_min=1e-28, sigmav_max=1e-18):
-    ts_dict_Jnuisance = {}
-    for key, tstable in ts_dict.items():
-        if np.all(tstable==tstable[0]):
-            ts_dict_Jnuisance[key] = tstable
-        else:
-            source = key.split("_")
-            DlogJ = DlogJ_dict[source[0]]
-            maxdev = 6. * DlogJ
-            profiling_steps = 10000
-            l = np.linspace(-maxdev, maxdev, num=profiling_steps, endpoint=True)
-            lLkl = -2.*np.log((np.exp(-np.power(l,2)/(2.*np.power(DlogJ,2)))/(np.sqrt(2.*np.pi)*DlogJ*np.log(10))))
-            lin_interpolation = interp1d(sigmav, tstable, kind='linear', fill_value='extrapolate')
-            min_ind = np.min(np.where(tstable == np.min(tstable)))
-            ts_val = []
-            for sv in sigmav:
-                g = sv/np.power(10,l)
-                gSpline = lin_interpolation(g)
-                gLkl = np.where(((g>sigmav_min) & (g<sigmav_max)), gSpline,  np.nan)
-                totLkl = gLkl + lLkl
-                ts_val.append(np.nanmin(totLkl))
-            ts_val= np.array(ts_val)
-            dis = ts_val[min_ind] - tstable[min_ind]
-            ts_dict_Jnuisance[key] = ts_val - dis
-    return ts_dict_Jnuisance
+def compute_Jnuisance(sigmav, tstable, DlogJ, sigmav_min=1e-28, sigmav_max=1e-18):
+    if not np.all(tstable==tstable[0]):
+        maxdev = 6. * DlogJ
+        profiling_steps = 10000
+        l = np.linspace(-maxdev, maxdev, num=profiling_steps, endpoint=True)
+        lLkl = -2.*np.log((np.exp(-np.power(l,2)/(2.*np.power(DlogJ,2)))/(np.sqrt(2.*np.pi)*DlogJ*np.log(10))))
+        lin_interpolation = interp1d(sigmav, tstable, kind='linear', fill_value='extrapolate')
+        min_ind = np.min(np.where(tstable == np.min(tstable)))
+        ts_val = []
+        for sv in sigmav:
+            g = sv/np.power(10,l)
+            gSpline = lin_interpolation(g)
+            gLkl = np.where(((g>sigmav_min) & (g<sigmav_max)), gSpline,  np.nan)
+            totLkl = gLkl + lLkl
+            ts_val.append(np.nanmin(totLkl))
+        ts_val= np.array(ts_val)
+        dis = ts_val[min_ind] - tstable[min_ind]
+        tstable = ts_val - dis
+    return tstable
 
 def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
 

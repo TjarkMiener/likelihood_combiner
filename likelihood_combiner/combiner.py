@@ -29,8 +29,7 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
     except KeyError:
         JFactor_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/Jfactor_Geringer-SamethTable.txt"))
             
-    sources_logJ,sources_DlogJ = reader.read_JFactor(JFactor_file)
-
+    logJ, DlogJ = reader.read_JFactor(JFactor_file)
     # Reading in the the sigmav range and spacing. Round of the third digit to avoid an interpolation.
     sigmavMin = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_min'])))).astype(int))).astype(int)
     sigmavMax = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_max'])))).astype(int))).astype(int)
@@ -41,41 +40,71 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
         sigmav[i] = np.around(sigmav[i],decimals=e)
 
     for simulation in simulations:
-    
-        tstables = reader.read_tstables(data_dir, sources_logJ, simulation)
-
-
+        tstables = reader.read_tstables(data_dir, logJ, simulation)
         combined_ts = {}
         combined_ts_Jnuisance = {}
         mass_axis = []
         for source in sources:
-            # Combine ts values for each dSphs
             combined_source_ts = {}
             combined_source_ts_Jnuisance = {}
+
+            # Check which collaboration observed the particular dSph
             for collaboration in collaborations:
                 key = "{}_{}_{}".format(channel,source,collaboration)
-                if key+'_ts' in tstables:
-                    tstable = tstables[key+'_ts']
-                    masses = tstables[key+'_masses']
-                    sigmavFile = tstable[0]
-                    exponent = (np.abs(np.floor(np.log10(np.abs(sigmavFile))).astype(int))+3).astype(int)
-                    for i,e in enumerate(exponent):
-                        sigmavFile[i] = np.around(sigmavFile[i],decimals=e)
-                    sigmavFile = sigmavFile[::-1]
-                    for i,m in enumerate(masses[1:]):
-                        if m not in mass_axis:
-                            mass_axis.append(m)
-                        if source+"_"+str(m) not in combined_source_ts:
-                            combined_source_ts[source+"_"+str(m)] = np.zeros(len(sigmav))
-                        ts_values = tstable[i+1][::-1]
-                        if not np.all(ts_values == ts_values[0]):
-                            if not np.array_equal(sigmav,sigmavFile):
-                                lin_interpolation = interp1d(sigmavFile, ts_values, kind='linear', fill_value='extrapolate')
-                                ts_values = lin_interpolation(sigmav)
-                            combined_source_ts[source+"_"+str(m)] += ts_values
+                if key+'_ts' not in tstables:
+                    # Delete invalid J-Factors and it's uncertainties
+                    del logJ[source][collaboration]
+                    del DlogJ[source][collaboration]
+
+            # Compute the actual uncertainties, which is introduced in the combination.
+            # Therefore we have to sort the DlogJ[source] in descending order and compute the
+            # actual uncertainty using DlogJ_diff = (DlogJ[source]^2 - DlogJ_next[source]^2)^1/2.
+            # For the last element DlogJ_diff is set to DlogJ[source]. After this computation,
+            # DlogJ[source] holds a 2D array per collaboration with the uncertainty for a single
+            # analysis and the uncertainty for the combined analysis.
             if jnuisance:
-                combined_source_ts_Jnuisance = compute_Jnuisance(sigmav, combined_source_ts, sources_DlogJ)
-                combined_source_limits_Jnuisance,combined_source_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_source_ts_Jnuisance)
+                DlogJ[source] = dict(sorted(DlogJ[source].items(), key=lambda x: x[1], reverse=True))
+                prev_collaboration = None
+                for collaboration in DlogJ[source]:
+                    if prev_collaboration:
+                        DlogJ_diff = 0.0
+                        if DlogJ[source][prev_collaboration] != DlogJ[source][collaboration]:
+                            DlogJ_diff = np.sqrt(np.power(DlogJ[source][prev_collaboration],2) - np.power(DlogJ[source][collaboration],2))
+                        DlogJ[source][prev_collaboration] = [DlogJ[source][prev_collaboration], DlogJ_diff]
+                    prev_collaboration = collaboration
+                    prev_DlogJ = DlogJ[source][collaboration]
+                DlogJ[source][prev_collaboration] = [prev_DlogJ, prev_DlogJ]
+
+            # Combine ts values for the particular dSph
+            for collaboration in DlogJ[source]:
+                key = "{}_{}_{}".format(channel,source,collaboration)
+                tstable = tstables[key+'_ts']
+                masses = tstables[key+'_masses']
+                sigmavFile = tstable[0]
+                exponent = (np.abs(np.floor(np.log10(np.abs(sigmavFile))).astype(int))+3).astype(int)
+                for i,e in enumerate(exponent):
+                    sigmavFile[i] = np.around(sigmavFile[i],decimals=e)
+                sigmavFile = sigmavFile[::-1]
+                for i,m in enumerate(masses[1:]):
+                    if m not in mass_axis:
+                        mass_axis.append(m)
+                    if source+"_"+str(m) not in combined_source_ts:
+                        combined_source_ts[source+"_"+str(m)] = np.zeros(len(sigmav))
+                        if jnuisance:
+                            combined_source_ts_Jnuisance[source+"_"+str(m)] = np.zeros(len(sigmav))
+
+                    ts_values = tstable[i+1][::-1]
+                    if not np.all(ts_values == ts_values[0]):
+                        if not np.array_equal(sigmav,sigmavFile):
+                            lin_interpolation = interp1d(sigmavFile, ts_values, kind='linear', fill_value='extrapolate')
+                            ts_values = lin_interpolation(sigmav)
+                        combined_source_ts[source+"_"+str(m)] += ts_values
+                        if jnuisance:
+                            combined_source_ts_Jnuisance[source+"_"+str(m)] += ts_values
+                            if DlogJ[source][collaboration][1] != 0.0:
+                                combined_source_ts_Jnuisance[source+"_"+str(m)] = compute_Jnuisance(sigmav, combined_source_ts_Jnuisance[source+"_"+str(m)], DlogJ[source][collaboration][1])
+
+            # Combine ts values for all dSphs
             for m in mass_axis:
                 if str(m) not in combined_ts:
                     combined_ts[str(m)] = np.zeros(len(sigmav))
@@ -87,6 +116,7 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
                         if jnuisance:
                             combined_ts_Jnuisance[str(m)] += combined_source_ts_Jnuisance[source+"_"+str(m)]
 
+        # Compute the sigmav ULs per mass
         combined_sources_limits,combined_sources_sensitivity = compute_sensitivity(sigmav, combined_ts)
         if jnuisance:
             combined_sources_limits_Jnuisance,combined_sources_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_ts_Jnuisance)
