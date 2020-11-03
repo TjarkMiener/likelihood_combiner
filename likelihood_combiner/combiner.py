@@ -17,19 +17,11 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
 
     sources = config['Configuration']['sources']
     collaborations = config['Configuration']['collaborations']
-    jnuisance = config['Data']['J_nuisance']
+    jnuisance = config['Data']['j_nuisance']
 
     # Initializing the LklComReader
-    reader = LklComReader(channel, sources, collaborations)
+    reader = LklComReader(channel, sources, collaborations, data_dir, config['Data']['j_factors'])
     
-    try:
-        JFactor_file = config['Data']['JFactor_table']
-        if JFactor_file is None:
-            raise KeyError
-    except KeyError:
-        JFactor_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/Jfactor_Geringer-SamethTable.txt"))
-            
-    logJ, DlogJ = reader.read_JFactor(JFactor_file)
     # Reading in the the sigmav range and spacing. Round of the third digit to avoid an interpolation.
     sigmavMin = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_min'])))).astype(int))).astype(int)
     sigmavMax = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_max'])))).astype(int))).astype(int)
@@ -38,45 +30,43 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
     exponent = (np.abs(np.floor(np.log10(np.abs(sigmav))).astype(int))+3).astype(int)
     for i,e in enumerate(exponent):
         sigmav[i] = np.around(sigmav[i],decimals=e)
-
+        
+    logJ, DlogJ = reader.read_jfactor()
+    if simulations[0] == -1:
+        print("  J-Factor settings:")
+        print("    {}".format(config['Data']['j_factors']))
+        print("    logJ = {}".format(logJ))
+        print("    DlogJ = {}".format(DlogJ))
+    DlogJ_comb = {}
+    for source in sources:
+        # Compute the actual uncertainties, which is introduced in the combination.
+        # Therefore, we have to sort the DlogJ[source] in descending order and compute the
+        # actual uncertainty using DlogJ_diff = (DlogJ^2 - DlogJ_next^2)^1/2. For the last
+        # element DlogJ_diff is set to (the smallest) DlogJ.
+        # After this computation, DlogJ_comb[source] holds the J Factor uncertainty
+        # for the combined analysis.
+        if jnuisance:
+            DlogJ_comb[source] = {}
+            DlogJ[source] = dict(sorted(DlogJ[source].items(), key=lambda x: x[1], reverse=True))
+            prev_collaboration = None
+            for collaboration in DlogJ[source]:
+                if prev_collaboration:
+                    DlogJ_diff = 0.0
+                    if DlogJ_comb[source][prev_collaboration] != DlogJ[source][collaboration]:
+                        DlogJ_diff = np.sqrt(np.power(DlogJ_comb[source][prev_collaboration],2) - np.power(DlogJ[source][collaboration],2))
+                    DlogJ_comb[source][prev_collaboration] = DlogJ_diff
+                prev_collaboration = collaboration
+                prev_DlogJ = DlogJ_comb[source][prev_collaboration] = DlogJ[source][collaboration]
+           
     for simulation in simulations:
-        tstables = reader.read_tstables(data_dir, logJ, simulation)
-        combined_ts = {}
-        combined_ts_Jnuisance = {}
+        tstables = reader.read_tstables(logJ, simulation)
+        combined_ts, combined_ts_Jnuisance = {}, {}
         mass_axis = []
         for source in sources:
-            combined_source_ts = {}
-            combined_source_ts_Jnuisance = {}
-
-            # Check which collaboration observed the particular dSph
-            for collaboration in collaborations:
-                key = "{}_{}_{}".format(channel,source,collaboration)
-                if key+'_ts' not in tstables:
-                    # Delete invalid J-Factors and it's uncertainties
-                    del logJ[source][collaboration]
-                    del DlogJ[source][collaboration]
-
-            # Compute the actual uncertainties, which is introduced in the combination.
-            # Therefore, we have to sort the DlogJ[source] in descending order and compute the
-            # actual uncertainty using DlogJ_diff = (DlogJ^2 - DlogJ_next^2)^1/2. For the last
-            # element DlogJ_diff is set to (the smallest) DlogJ.
-            # After this computation, DlogJ[source] holds a 2D array per collaboration with the
-            # uncertainty for a single analysis and the uncertainty for the combined analysis.
-            if jnuisance:
-                DlogJ[source] = dict(sorted(DlogJ[source].items(), key=lambda x: x[1], reverse=True))
-                prev_collaboration = None
-                for collaboration in DlogJ[source]:
-                    if prev_collaboration:
-                        DlogJ_diff = 0.0
-                        if DlogJ[source][prev_collaboration] != DlogJ[source][collaboration]:
-                            DlogJ_diff = np.sqrt(np.power(DlogJ[source][prev_collaboration],2) - np.power(DlogJ[source][collaboration],2))
-                        DlogJ[source][prev_collaboration] = [DlogJ[source][prev_collaboration], DlogJ_diff]
-                    prev_collaboration = collaboration
-                    prev_DlogJ = DlogJ[source][collaboration]
-                DlogJ[source][prev_collaboration] = [prev_DlogJ, prev_DlogJ]
+            combined_source_ts, combined_source_ts_Jnuisance = {}, {}
 
             # Combine ts values for the particular dSph
-            for collaboration in DlogJ[source]:
+            for collaboration in DlogJ_comb[source].keys():
                 key = "{}_{}_{}".format(channel,source,collaboration)
                 tstable = tstables[key+'_ts']
                 masses = tstables[key+'_masses']
@@ -101,8 +91,8 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
                         combined_source_ts[source+"_"+str(m)] += ts_values
                         if jnuisance:
                             combined_source_ts_Jnuisance[source+"_"+str(m)] += ts_values
-                            if DlogJ[source][collaboration][1] != 0.0:
-                                combined_source_ts_Jnuisance[source+"_"+str(m)] = compute_Jnuisance(sigmav, combined_source_ts_Jnuisance[source+"_"+str(m)], DlogJ[source][collaboration][1])
+                            if DlogJ_comb[source][collaboration] != 0.0:
+                                combined_source_ts_Jnuisance[source+"_"+str(m)] = compute_Jnuisance(sigmav, combined_source_ts_Jnuisance[source+"_"+str(m)], DlogJ_comb[source][collaboration])
 
             # Combine ts values for all dSphs
             for m in mass_axis:

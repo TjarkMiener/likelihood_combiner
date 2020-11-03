@@ -39,7 +39,9 @@ if __name__ == "__main__":
             raise KeyError
     except KeyError:
         h5file = "lklcom.h5"
-
+    
+    # Confidence level bands
+    config['Data']['cl_bands'] = np.int(config['Data']['simulations']) > 0
     # Merge h5 files
     if h5file not in files:
         svUL, svUL_Jnuisance = {}, {}
@@ -48,7 +50,7 @@ if __name__ == "__main__":
         if '/masses' in data.keys():
             svUL['masses'] = data['masses'][0]
             svUL['data'] = data['sigmavULs'][0]
-            if config['Data']['J_nuisance']:
+            if config['Data']['j_nuisance']:
                svUL_Jnuisance['masses'] = data['masses'][0]
                svUL_Jnuisance['data'] = data['sigmavULs_Jnuisance'][0]
         simu_files = files[(data_file!=files)]
@@ -62,7 +64,7 @@ if __name__ == "__main__":
         svUL = pd.DataFrame(data=svUL)
         # Write the panda DataFrames into the hdf5 file
         pd.DataFrame(data=svUL).to_hdf(output_dir+h5file, key='{}/sigmavULs'.format(channel), mode='a')
-        if config['Data']['J_nuisance']:
+        if config['Data']['j_nuisance']:
             # Write the panda DataFrames into the hdf5 file
             pd.DataFrame(data=svUL_Jnuisance).to_hdf(output_dir+h5file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
  

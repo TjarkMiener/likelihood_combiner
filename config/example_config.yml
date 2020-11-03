@@ -1,11 +1,10 @@
 Hardware:
   cpu_counts: 30
 Data:
-  data_directory: /Users/tmiener/Documents/likelihood_combiner/data/
-  cl_bands: true
+  data_directory: /Users/tmiener/Desktop/likelihood_combiner/data/
   simulations: 30
-  J_nuisance: true
-  JFactor_table: /Users/tmiener/Documents/likelihood_combiner/data/Jfactor_Geringer-SamethTable.txt
+  j_nuisance: true
+  j_factors: 'GeringerSameth'
   # Define the sigma ranges
   sigmaV_min: 1e-28
   sigmaV_max: 1e-18
@@ -15,6 +14,6 @@ Configuration:
   sources: ['Segue1', 'UrsaMajorII']
   collaborations: {'IACT': 2.6}
 Output:
-  output_directory: /Users/tmiener/Documents/likelihood_combiner/output/
+  output_directory: /Users/tmiener/Desktop/likelihood_combiner/output/
   hdf5_dataset: lklcom.h5
   collaboration_plot: false

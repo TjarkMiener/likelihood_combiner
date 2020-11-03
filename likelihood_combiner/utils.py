@@ -77,11 +77,22 @@ def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
         channels = [channel]
 
     # Corresponding LaTex notation
-    channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'hh':'H^{0}H^{0}', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
+    channels_LaTex = {
+        "bb":"b\\bar{b}",
+        "tautau":"\\tau^{+}\\tau^{-}",
+        "mumu":"\mu^{+}\mu^{-}",
+        "tt":"t\\bar{t}",
+        "WW":"W^{+}W^{-}",
+        "gammagamma":"\gamma\gamma",
+        "hh":"hh",
+        "ZZ":"ZZ",
+        "ee":"e^{+}e^{-}"
+    }
 
     for channel in channels:
+        print("LklCom results:")
         tables = ['sigmavULs']
-        if config['Data']['J_nuisance']:
+        if config['Data']['j_nuisance']:
             tables.append('sigmavULs_Jnuisance')
         for table in tables:
             sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table))
@@ -92,6 +103,7 @@ def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
             y_up = np.nanmax(data) * 2
 
             fig, ax = plt.subplots()
+            print("  observational_limits: {}".format(data.tolist()))
             ax.plot(masses,data,label='Combined limit',c='k')
             if config['Data']['cl_bands']:
                 simulations = len(sigmavULs.columns)-2
@@ -109,6 +121,12 @@ def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
                     sv_minus1.append(uls_mass[svm1_index])
                     sv_plus2.append(uls_mass[svp2_index])
                     sv_minus2.append(uls_mass[svm2_index])
+
+                print("  null_hypothesis: {}".format(null_hypothesis))
+                print("  cl_minus1: {}".format(sv_minus1))
+                print("  cl_minus2: {}".format(sv_minus2))
+                print("  cl_plus1: {}".format(sv_plus1))
+                print("  cl_plus2: {}".format(sv_plus2))
 
                 y_up = np.nanmax(sv_plus2) * 2
                 ax.plot(masses,null_hypothesis,label=r'$ H_{0} $ median',c='k',linewidth=0.75,linestyle='--')
@@ -169,11 +187,21 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
     channels = config['Configuration']['channels']
     collaborations = config['Configuration']['collaborations']
     # Corresponding LaTex notation
-    channels_LaTex = {'bb':'b\\bar{b}', 'tautau':'\\tau^{+}\\tau^{-}', 'mumu':'\mu^{+}\mu^{-}', 'tt':'t\\bar{t}', 'WW':'W^{+}W^{-}', 'gammagamma':'\gamma\gamma', 'ZZ':'Z^{0}Z^{0}', 'ee':'e^{+}e^{-}'}
+    channels_LaTex = {
+        "bb":"b\\bar{b}",
+        "tautau":"\\tau^{+}\\tau^{-}",
+        "mumu":"\mu^{+}\mu^{-}",
+        "tt":"t\\bar{t}",
+        "WW":"W^{+}W^{-}",
+        "gammagamma":"\gamma\gamma",
+        "hh":"hh",
+        "ZZ":"ZZ",
+        "ee":"e^{+}e^{-}"
+    }
     
     for channel in channels:
         tables = ['sigmavULs']
-        if config['Data']['J_nuisance']:
+        if config['Data']['j_nuisance']:
             tables.append('sigmavULs_Jnuisance')
         for table in tables:
             sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table))

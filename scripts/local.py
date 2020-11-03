@@ -56,6 +56,8 @@ if __name__ == "__main__":
         print("Observations for the '{}' channel:".format(channel))
         combiner(config, channel, sigmavULs, sigmavULs_Jnuisance)
         print("Combined limits for observational data!")
+        # Confidence level bands
+        config['Data']['cl_bands'] = np.int(config['Data']['simulations']) > 0
         if config['Data']['cl_bands']:
             # Calculate the confidence level bands
             # Set up the hardware settings for the parallel processing
@@ -101,7 +103,7 @@ if __name__ == "__main__":
         svUL = pd.DataFrame(data=svUL)
         # Write the panda DataFrames into the hdf5 file
         svUL.to_hdf(hdf5file, key='{}/sigmavULs'.format(channel), mode='a')
-        if config['Data']['J_nuisance']:
+        if config['Data']['j_nuisance']:
             svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
             for key, value in dict(sigmavULs_Jnuisance).items():
                 if channel in key: svUL_Jnuisance[key.replace('{}_'.format(channel),'')] = value
@@ -129,7 +131,7 @@ if __name__ == "__main__":
                 svUL = pd.DataFrame(data=svUL)
                 # Write the panda DataFrames into the hdf5 file
                 svUL.to_hdf(hdf5file, key='{}/{}/sigmavULs'.format(channel,collaboration), mode='a')
-                if config['Data']['J_nuisance']:
+                if config['Data']['j_nuisance']:
                     svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
                     svUL_Jnuisance['data'] = sigmavULs_Jnuisance['{}_data'.format(channel)]
                     svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
