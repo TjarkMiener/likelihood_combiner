@@ -21,7 +21,7 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
 
     # Initializing the LklComReader
     reader = LklComReader(channel, sources, collaborations, data_dir, config['Data']['j_factors'])
-    
+
     # Reading in the the sigmav range and spacing. Round of the third digit to avoid an interpolation.
     sigmavMin = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_min'])))).astype(int))).astype(int)
     sigmavMax = -(np.abs(np.floor(np.log10(np.abs(float(config['Data']['sigmaV_max'])))).astype(int))).astype(int)
@@ -30,7 +30,7 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
     exponent = (np.abs(np.floor(np.log10(np.abs(sigmav))).astype(int))+3).astype(int)
     for i,e in enumerate(exponent):
         sigmav[i] = np.around(sigmav[i],decimals=e)
-        
+
     logJ, DlogJ = reader.read_jfactor()
     if simulations[0] == -1:
         print("  J-Factor settings:")
@@ -57,7 +57,8 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
                     DlogJ_comb[source][prev_collaboration] = DlogJ_diff
                 prev_collaboration = collaboration
                 prev_DlogJ = DlogJ_comb[source][prev_collaboration] = DlogJ[source][collaboration]
-           
+    print("    DlogJ_comb = {}".format(DlogJ_comb))
+
     for simulation in simulations:
         tstables = reader.read_tstables(logJ, simulation)
         combined_ts, combined_ts_Jnuisance = {}, {}
@@ -93,6 +94,9 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
                             combined_source_ts_Jnuisance[source+"_"+str(m)] += ts_values
                             if DlogJ_comb[source][collaboration] != 0.0:
                                 combined_source_ts_Jnuisance[source+"_"+str(m)] = compute_Jnuisance(sigmav, combined_source_ts_Jnuisance[source+"_"+str(m)], DlogJ_comb[source][collaboration])
+                    else:
+                        if jnuisance and DlogJ_comb[source][collaboration] != 0.0 and collaboration == list(DlogJ_comb[source].keys())[-1]:
+                            combined_source_ts_Jnuisance[source+"_"+str(m)] = compute_Jnuisance(sigmav, combined_source_ts_Jnuisance[source+"_"+str(m)], DlogJ_comb[source][collaboration])
 
             # Combine ts values for all dSphs
             for m in mass_axis:
@@ -110,7 +114,7 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
         combined_sources_limits,combined_sources_sensitivity = compute_sensitivity(sigmav, combined_ts)
         if jnuisance:
             combined_sources_limits_Jnuisance,combined_sources_sensitivity_Jnuisance = compute_sensitivity(sigmav, combined_ts_Jnuisance)
-                
+
         # Filling the data of the txt file into the table of the hdf5 file.
         sorted_mass = sorted(mass_axis)
         svUL = []
@@ -151,7 +155,7 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
             pd.DataFrame(data=svUL).to_hdf(h5file, key='/sigmavULs', mode='a')
             if jnuisance:
                 pd.DataFrame(data=svUL_Jnuisance).to_hdf(h5file, key='/sigmavULs_Jnuisance', mode='a')
-            
+
         else:
             if simulation >= 0:
                 h5_key = "{}_simu{}".format(channel, simulation)
