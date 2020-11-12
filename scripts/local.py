@@ -116,8 +116,8 @@ if __name__ == "__main__":
 
     if config['Output']['collaboration_plot'] and len(config['Configuration']['collaborations']) > 1:
         collaborations = config['Configuration']['collaborations']
-        for collaboration in collaborations:
-            config['Configuration']['collaborations'] = [collaboration]
+        for collaboration in collaborations.keys():
+            config['Configuration']['collaborations'] = {collaboration: collaborations[collaboration]}
             sigmavULs = manager.dict()
             sigmavULs_Jnuisance = manager.dict()
             for channel in config['Configuration']['channels']:
