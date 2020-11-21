@@ -50,25 +50,9 @@ Run LikelihoodCombiner from the command line:
   
 ```bash
 LikelihoodCombiner_dir=</installation/path>/likelihood_combiner
-python $LikelihoodCombiner_dir/likelihood_combiner/combiner.py $LikelihoodCombiner_dir/config/example_config.yml 
+python $LikelihoodCombiner_dir/scripts/{local|cluster}.py $LikelihoodCombiner_dir/config/example_config.yml 
 ```
   
-Alternatively, import LikelihoodCombiner as a module in a Python script:
-  
-```python
-import yaml
-from likelihood_combiner.combiner import run_combiner
- 
-with open('</installation/path>/config/example_config.yml', 'r') as myconfig:
-    config = yaml.safe_load(myconfig)
-
-# Combining limits
-sigmavULs = {}
-sigmavULs_Jnuisance = {}
-for channel in config['Configuration']['channels']: 
-    run_combiner(config, channel, sigmavULs, sigmavULs_Jnuisance)
-```
-
 ### Mock data 
 
 The data you can find in the LikelihoodCombiner, where produced with [gLike](https://github.com/javierrico/gLike/) using the [mock data](https://github.com/javierrico/gLike/tree/master/data). These txt files **don't** correspond to IACT observations of Segue 1 or Ursa Major II and are only included for testing the code framework.
