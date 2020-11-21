@@ -13,7 +13,7 @@ requirements:
   build:
     - python        
     - matplotlib
-    - numpy
+    - numpy>=1.15.0
     - scipy
     - pandas
     - pyyaml
@@ -21,7 +21,7 @@ requirements:
   host:
     - python
     - matplotlib
-    - numpy
+    - numpy>=1.15.0
     - scipy
     - pandas
     - pyyaml
@@ -29,7 +29,7 @@ requirements:
   run:
     - python
     - matplotlib
-    - numpy
+    - numpy>=1.15.0
     - scipy
     - pandas
     - pyyaml
