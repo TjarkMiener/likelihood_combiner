@@ -1,6 +1,10 @@
 # LikelihoodCombiner: Combining likelihoods from different experiments.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3666282.svg)](https://doi.org/10.5281/zenodo.3666282)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4284121.svg)](https://doi.org/10.5281/zenodo.4284121)
+[![Anaconda-Server Badge](https://anaconda.org/tmiener/likelihood_combiner/badges/version.svg)](https://anaconda.org/tmiener/likelihood_combiner)
+[![Anaconda-Server Badge](https://anaconda.org/tmiener/likelihood_combiner/badges/platforms.svg)](https://anaconda.org/tmiener/likelihood_combiner)
+[![Anaconda-Server Badge](https://anaconda.org/tmiener/likelihood_combiner/badges/license.svg)](https://anaconda.org/tmiener/likelihood_combiner)
+[![Anaconda-Server Badge](https://anaconda.org/tmiener/likelihood_combiner/badges/installer/conda.svg)](https://conda.anaconda.org/tmiener)
 
 ![Gloryduck logo](images/Gloryduck_logo.png)
 
