@@ -37,15 +37,16 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
         print("    {}".format(config['Data']['j_factors']))
         print("    logJ = {}".format(logJ))
         print("    DlogJ = {}".format(DlogJ))
-    DlogJ_comb = {}
-    for source in sources:
-        # Compute the actual uncertainties, which is introduced in the combination.
-        # Therefore, we have to sort the DlogJ[source] in descending order and compute the
-        # actual uncertainty using DlogJ_diff = (DlogJ^2 - DlogJ_next^2)^1/2. For the last
-        # element DlogJ_diff is set to (the smallest) DlogJ.
-        # After this computation, DlogJ_comb[source] holds the J Factor uncertainty
-        # for the combined analysis.
-        if jnuisance:
+
+    # Compute the actual uncertainties, which is introduced in the combination.
+    # Therefore, we have to sort the DlogJ[source] in descending order and compute the
+    # actual uncertainty using DlogJ_diff = (DlogJ^2 - DlogJ_next^2)^1/2. For the last
+    # element DlogJ_diff is set to (the smallest) DlogJ.
+    # After this computation, DlogJ_comb[source] holds the J Factor uncertainty
+    # for the combined analysis.
+    if jnuisance:
+        DlogJ_comb = {}
+        for source in sources:
             DlogJ_comb[source] = {}
             DlogJ[source] = dict(sorted(DlogJ[source].items(), key=lambda x: x[1], reverse=True))
             prev_collaboration = None
@@ -57,7 +58,8 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
                     DlogJ_comb[source][prev_collaboration] = DlogJ_diff
                 prev_collaboration = collaboration
                 prev_DlogJ = DlogJ_comb[source][prev_collaboration] = DlogJ[source][collaboration]
-    print("    DlogJ_comb = {}".format(DlogJ_comb))
+        if simulations[0] == -1:
+            print("    DlogJ_comb = {}".format(DlogJ_comb))
 
     for simulation in simulations:
         tstables = reader.read_tstables(logJ, simulation)
@@ -67,7 +69,7 @@ def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulati
             combined_source_ts, combined_source_ts_Jnuisance = {}, {}
 
             # Combine ts values for the particular dSph
-            for collaboration in DlogJ_comb[source].keys():
+            for collaboration in DlogJ[source].keys():
                 key = "{}_{}_{}".format(channel,source,collaboration)
                 tstable = tstables[key+'_ts']
                 masses = tstables[key+'_masses']
