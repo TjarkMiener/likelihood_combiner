@@ -108,19 +108,12 @@ def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
             if config['Data']['cl_bands']:
                 simulations = len(sigmavULs.columns)-2
                 # Calculate the median (null hypothesis)
-                null_hypothesis, sv_plus1, sv_minus1, sv_plus2, sv_minus2 = [],[],[],[],[]
-                nh_index = np.int(simulations/2)-1
-                svp1_index = simulations-np.int(16*simulations/100)-1
-                svm1_index = np.int(0.5+16*simulations/100)-1
-                svp2_index = simulations-np.int(2.5*simulations/100)-1
-                svm2_index = np.int(0.5+2.5*simulations/100)-1
-                for ind in np.arange(len(masses)):
-                    uls_mass = np.sort(sigmavULs.iloc[ind,2:])
-                    null_hypothesis.append(uls_mass[nh_index])
-                    sv_plus1.append(uls_mass[svp1_index])
-                    sv_minus1.append(uls_mass[svm1_index])
-                    sv_plus2.append(uls_mass[svp2_index])
-                    sv_minus2.append(uls_mass[svm2_index])
+                simu_tab = sigmavULs.drop(['data','masses'], axis=1).to_numpy()
+                null_hypothesis = np.mean(simu_tab, axis=1)
+                sv_plus1 = np.percentile(simu_tab, 84.14, axis=1)
+                sv_plus2 = np.percentile(simu_tab, 97.725, axis=1)
+                sv_minus1 = np.percentile(simu_tab, 15.87, axis=1)
+                sv_minus2 = np.percentile(simu_tab, 2.275, axis=1)
 
                 print("  null_hypothesis: {}".format(null_hypothesis))
                 print("  cl_minus1: {}".format(sv_minus1))
@@ -133,7 +126,7 @@ def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
                 ax.fill_between(masses,sv_plus1,sv_minus1,color='green', alpha=0.5, linewidth=0)
                 ax.fill_between(masses,sv_plus1,sv_plus2,color='yellow', alpha=0.5, linewidth=0)
                 ax.fill_between(masses,sv_minus1,sv_minus2,color='yellow', alpha=0.5, linewidth=0)
-            
+
                 # Creating dummy data, which is needed for beautiful legend
                 dummy_val = np.ones(len(masses))*1e-32
                 plt.plot(masses,dummy_val,label='$ H_{0} \, 68\% $ containment',c='green', alpha=0.5, linewidth=6)
@@ -145,7 +138,7 @@ def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
                 thermal_relic_mass = [1.00e-01, 1.78e-01, 3.16e-01, 5.62e-01, 1.00e+00, 1.78e+00, 3.16e+00, 5.62e+00, 1.00e+01, 1.78e+01, 3.16e+01, 5.62e+01, 1.00e+02, 1.78e+02, 3.16e+02, 5.62e+02, 1.00e+03, 1.78e+03,3.16e+03, 5.62e+03, 1.00e+04, 1.00e+05]
                 thermal_relic_sigmav = [4.8e-26, 4.9e-26, 5.1e-26, 5.0e-26, 4.7e-26, 4.5e-26, 3.9e-26, 2.8e-26, 2.5e-26, 2.3e-26, 2.2e-26, 2.2e-26, 2.2e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26,2.4e-26, 2.4e-26]
                 plt.plot(thermal_relic_mass,thermal_relic_sigmav,label=r'Thermal relic $\langle\sigma v\rangle$',c='r',linewidth=1.5,linestyle='--')
-            
+
             ax.set_xscale('log')
             ax.set_xbound(lower=masses[0],upper=masses[-1])
             ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
@@ -181,7 +174,7 @@ def plot_sigmavULs(hdf5file, output_dir, config, channel=None):
             ax.clear()
 
     return
-    
+
 def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
 
     channels = config['Configuration']['channels']
@@ -198,7 +191,7 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
         "ZZ":"ZZ",
         "ee":"e^{+}e^{-}"
     }
-    
+
     for channel in channels:
         tables = ['sigmavULs']
         if config['Data']['j_nuisance']:
@@ -207,7 +200,7 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
             sigmavULs = pd.read_hdf(hdf5file, key='{}/{}'.format(channel,table))
             masses = np.squeeze(sigmavULs[['masses']].to_numpy())
             data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
-            
+
             fig, ax = plt.subplots()
             ax.plot(masses,data,label='Combined limit',c='k')
             for collaboration in collaborations:
@@ -215,7 +208,7 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
                 masses_col = np.squeeze(sigmavULs_col[['masses']].to_numpy())
                 data_col = np.squeeze(sigmavULs_col[['data']].to_numpy())
                 ax.plot(masses_col,data_col,label='{} limit'.format(collaboration))
-                
+
             ax.set_xscale('log')
             ax.set_xbound(lower=masses[0],upper=masses[-1])
             ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
@@ -231,7 +224,7 @@ def plot_sigmavULs_collaborations(hdf5file, output_dir, config):
             # Shrink current axis by 20%
             box = ax.get_position()
             ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        
+
             # Put a legend to the right of the current axis
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),fontsize=8)
             ax.grid(b=True,which='both',color='grey', linestyle='--', linewidth=0.25)
