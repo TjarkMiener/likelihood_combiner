@@ -1,17 +1,17 @@
 package:
   name: likelihood_combiner
-  version: "0.4.0"
+  version: "0.4.1"
 
 source:
   git_url: https://github.com/TjarkMiener/likelihood_combiner
-  git_rev: v0.4.0
+  git_rev: v0.4.1
 
 build:
   number: 0
 
 requirements:
   build:
-    - python        
+    - python>=3.8
     - matplotlib
     - numpy>=1.15.0
     - scipy
@@ -19,7 +19,7 @@ requirements:
     - pyyaml
     - pytables
   host:
-    - python
+    - python>=3.8
     - matplotlib
     - numpy>=1.15.0
     - scipy
@@ -27,7 +27,7 @@ requirements:
     - pyyaml
     - pytables
   run:
-    - python
+    - python>=3.8
     - matplotlib
     - numpy>=1.15.0
     - scipy

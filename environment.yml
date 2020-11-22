@@ -4,7 +4,7 @@ channels:
     - conda-forge
     - menpo
 dependencies:
-    - python
+    - python>=3.8
     - matplotlib
     - numpy>=1.15.0
     - scipy

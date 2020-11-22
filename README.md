@@ -32,11 +32,47 @@ conda activate lklcom
 cd </installation/path>/likelihood_combiner
 pip install --upgrade .
 ```
+
 NOTE for developers: If you wish to fork/clone the respository and make changes to any of the LikelihoodCombiner modules, the package must be reinstalled for the changes to take effect.
+
+### Installing as a conda package
+
+To install it as a conda package, first install Anaconda by following the instructions here: https://www.anaconda.com/distribution/.
+
+Then, create and enter a new Python 3.8 environment with:
+
+```bash
+conda create -n [ENVIRONMENT_NAME] python=3.8
+source activate [ENVIRONMENT_NAME]
+```
+
+From the environment, add the necessary channels for all dependencies:
+
+```bash
+conda config --add channels conda-forge
+conda config --add channels menpo
+```
+
+Install the package:
+
+```bash
+conda install -c tmiener likelihood_combiner
+```
+
+This should automatically install all dependencies (NOTE: this may take some time, as by default MKL is included as a dependency of NumPy and it is very large).
+
+If you want to import any functionality from LikelihoodCombiner into your own Python scripts, then you are all set. However, if you wish to make use of any of the scripts in likelihood_combiner/scripts (like {local/cluster}.py), you should also clone the repository locally and checkout the corresponding tag (i.e. for version v0.4.1):
+
+```bash
+git clone https://github.com/TjarkMiener/likelihood_combiner
+git checkout v0.4.1
+```
+
+LikelihoodCombiner should already have been installed in your environment by Conda, so no further installation steps (i.e. with setuptools or pip) are necessary and you should be able to run scripts/{local/cluster}.py directly.
 
 ### Dependencies
 
-- Python 3.X
+- Python 3.8.X
 - NumPy
 - SciPy
 - Pandas
