@@ -3,6 +3,10 @@ from scipy.interpolate import interp1d
 import os
 import pandas as pd
 
+__all__ = [
+    'LklComReader'
+]
+
 class LklComReader:
     def __init__(self,
                  channel,

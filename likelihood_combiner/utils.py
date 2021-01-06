@@ -4,6 +4,14 @@ import os
 import pandas as pd
 from scipy.interpolate import interp1d
 
+__all__ = [
+    'compute_sensitivity',
+    'compute_Jnuisance',
+    'plot_sigmavULs',
+    'plot_sigmavULs_collaborations',
+    'progress_bar'
+]
+
 def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
     limits = {}
     sensitivities  = {}

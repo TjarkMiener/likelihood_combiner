@@ -6,6 +6,11 @@ import os
 from likelihood_combiner.reader import LklComReader
 from likelihood_combiner.utils import *
 
+__all__ = [
+    'combiner'
+]
+
+
 def combiner(config, channel, sigmavULs=None, sigmavULs_Jnuisance=None, simulation_counter=None, simulations=[-1]):
 
     try:
