@@ -16,7 +16,7 @@ def write_to_lklcom(collaboration,
                     lkl_dict,
                     output_file,
                     mode="a",
-                    simulation=0):
+                    simulation=-1):
     """
     Write/append a given likelihood table into lklcom hdf5 file.
     Parameters
@@ -50,7 +50,7 @@ def write_to_lklcom(collaboration,
         Default: "a"
     simulation: `int`
         number of the simulation.
-        Default: 0 (= data sample)
+        Default: -1 (= data sample)
     Returns
     -------
     
@@ -74,7 +74,7 @@ def write_to_lklcom(collaboration,
     
     # Creating the table mass vs sigmav for each source and for each channel.
     table_name = "data"
-    if simulation != 0:
+    if simulation != -1:
         table_name = "simu_{}".format(simulation)
     table = h5.create_table(eval("h5.root.{}.{}.{}".format(collaboration, source, channel)),table_name,description,"Table of the {} collaboration for the source {} with the annihilation channel {}.".format(collaboration, source, channel))
     
@@ -140,7 +140,7 @@ def gLike_to_lklcom(input_dir,
         # Parsing the file name.
         file_info = file.replace('.txt','').split("_")
         # Getting the number of the simulation.
-        simulation=0
+        simulation=-1
         if len(file_info) == 4:
             simulation=file_info[3]
             
@@ -262,7 +262,7 @@ def lklcom_to_gLike(input_file,
                             elif value > 1e-5:
                                 gLike_file.write("{:.2e} ".format(value))
                             else:
-                                gLike_file.write("0  ")
+                                gLike_file.write("0 ")
                     else:
                         gLike_file.write("{} ".format(value))
 
