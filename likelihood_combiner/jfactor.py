@@ -130,10 +130,13 @@ class JFactor:
                         table_info = table._v_pathname.split("/")
                         if (table_info[2], table_info[1]) not in combination_info:
                             combination_info.append((table_info[2], table_info[1]))
-            #if os.path.isdir(self.combination_data):
+            if os.path.isdir(self.combination_data):
                 # Writing only valid combinations from the lklcom hdf5 file.
-
-            #    pass
+                txt_files = np.array([x for x in os.listdir(self.combination_data) if x.endswith(".txt")])
+                for txt_file in txt_files:
+                    file_info = txt_file.replace('.txt','').split("_")
+                    if (file_info[1], file_info[2]) not in combination_info:
+                        combination_info.append((file_info[1], file_info[2]))
         return combination_info
 
 class Bonnivard(JFactor):

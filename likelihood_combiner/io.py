@@ -155,7 +155,7 @@ def gLike_to_lklcom(input_dir,
         sigmav_range = np.array(table[0][1:], dtype=np.float32)[::-1]
         # The first entry of each row correponds to the mass (or log J-Factor).
         # Detect the first entry and store it in a separate array.
-        masses = np.array([table[i][0] for i in np.arange(0,table.shape[0],1)])
+        masses = np.array([table[i][0] for i in np.arange(0,table.shape[0],1)], dtype=np.float32)
         # Constructing the likelihood or ts dictionary with the DM mass `string` as keys
         # and the inverted likelihood or ts values `numpy.ndarray of type numpy.float32` as values.
         lkl_dict = {}
