@@ -11,7 +11,7 @@ __all__ = [
 def write_to_lklcom(collaboration,
                     source,
                     channel,
-                    log_j_factor,
+                    logJ,
                     sigmav_range,
                     lkl_dict,
                     output_file,
@@ -27,7 +27,7 @@ def write_to_lklcom(collaboration,
         name of the source.
     channel: `string`
         name of the channel.
-    log_j_factor: `numpy.float32`
+    logJ: `numpy.float32`
         value of the log J-Factor.
     sigmav_range: `numpy.ndarray of type numpy.float32`
         sigmav range (ascending).
@@ -82,7 +82,7 @@ def write_to_lklcom(collaboration,
     # First row (row 0) contains the log J-Factor and the sigmav range (ascending).
     table = eval("h5.root.{}.{}.{}.{}".format(collaboration, source, channel, table_name))
     row = table.row
-    row['masses'] = np.float32(log_j_factor)
+    row['masses'] = np.float32(logJ)
     row['ts_values'] = np.array(sigmav_range, dtype=np.float32)
     row.append()
     table.flush()
@@ -150,7 +150,7 @@ def gLike_to_lklcom(input_dir,
         # Going through the table in the txt file and storing the entries in a 2D array.
         table = np.array([[i for i in line.split()] for line in txt_file]).T
         # Storing the log J-Factor.
-        log_j_factor = np.float32(table[0][0])
+        logJ = np.float32(table[0][0])
         # Storing the inverted sigmav range.
         sigmav_range = np.array(table[0][1:], dtype=np.float32)[::-1]
         # The first entry of each row correponds to the mass (or log J-Factor).
@@ -169,7 +169,7 @@ def gLike_to_lklcom(input_dir,
         write_to_lklcom(collaboration=file_info[2],
                         source=file_info[1],
                         channel=file_info[0],
-                        log_j_factor=log_j_factor,
+                        logJ=logJ,
                         sigmav_range=sigmav_range,
                         lkl_dict=lkl_dict,
                         output_file=output_file,
