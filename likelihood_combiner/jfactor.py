@@ -96,6 +96,11 @@ class JFactor:
         for source in self.DlogJ:
             DlogJ_comb[source] = {}
             self.DlogJ[source] = dict(sorted(self.DlogJ[source].items(), key=lambda x: x[1], reverse=True))
+            # Sorting the logJ dict accordingly.
+            logJ = {}
+            for collaboration in self.DlogJ[source]:
+                logJ[collaboration] = self.logJ[source][collaboration]
+            self.logJ[source] = logJ
             prev_collaboration = None
             for collaboration in self.DlogJ[source]:
                 if prev_collaboration:
