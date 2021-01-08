@@ -76,25 +76,25 @@ class JFactor:
     def get_combination_info(self):
         return self.combination_info
         
-    def compute_Jnuisance(sigmav, tstable, DlogJ, sigmav_min=1e-28, sigmav_max=1e-18):
-        if not np.all(tstable==tstable[0]):
+    def compute_Jnuisance(self, sigmav_range, ts_values, DlogJ, sigmav_min=1e-28, sigmav_max=1e-18):
+        if not np.all(ts_values==ts_values[0]):
             maxdev = 6. * DlogJ
             profiling_steps = 10000
             l = np.linspace(-maxdev, maxdev, num=profiling_steps, endpoint=True)
             lLkl = -2.*np.log((np.exp(-np.power(l,2)/(2.*np.power(DlogJ,2)))/(np.sqrt(2.*np.pi)*DlogJ*np.log(10))))
-            lin_interpolation = interp1d(sigmav, tstable, kind='linear', fill_value='extrapolate')
-            min_ind = np.min(np.where(tstable == np.min(tstable)))
+            lin_interpolation = interp1d(sigmav_range, ts_values, kind='linear', fill_value='extrapolate')
+            min_ind = np.min(np.where(ts_values == np.min(ts_values)))
             ts_val = []
-            for sv in sigmav:
+            for sv in sigmav_range:
                 g = sv/np.power(10,l)
                 gSpline = lin_interpolation(g)
                 gLkl = np.where(((g>sigmav_min) & (g<sigmav_max)), gSpline,  np.nan)
                 totLkl = gLkl + lLkl
                 ts_val.append(np.nanmin(totLkl))
             ts_val= np.array(ts_val)
-            dis = ts_val[min_ind] - tstable[min_ind]
-            tstable = ts_val - dis
-        return tstable
+            dis = ts_val[min_ind] - ts_values[min_ind]
+            ts_values = ts_val - dis
+        return ts_values
 
     def _get_jfactors(self):
         logJ, DlogJ = {}, {}

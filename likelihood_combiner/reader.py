@@ -16,7 +16,8 @@ class LklCom:
                  channel,
                  LklCom_jfactor_class,
                  combination_data=None,
-                 simulations=None
+                 simulations=None,
+                 sigmav_precision=3,
                  ):
 
         self.channel = channel
@@ -27,6 +28,7 @@ class LklCom:
             combination_data = LklCom_jfactor_class.combination_data
         self.combination_data = combination_data
         self.simulations= simulations
+        self.sigmav_precision = sigmav_precision
 
     def get_channel(self):
         return self.channel
@@ -46,6 +48,9 @@ class LklCom:
     def get_simulations(self):
         return self.simulations
     
+    def get_sigmav_precision(self):
+        return self.sigmav_precision
+    
     def _construct_combination_info(self):
         combination_info = []
         for source in self.logJ:
@@ -59,9 +64,10 @@ class LklCom_hdf5(LklCom):
     def __init__(self,
                 channel,
                 LklCom_jfactor_class,
-                combination_data=None
+                combination_data=None,
+                sigmav_precision=3
                 ):
-        super().__init__(channel, LklCom_jfactor_class, combination_data)
+        super().__init__(channel, LklCom_jfactor_class, combination_data, sigmav_precision=3)
         
         self.channel = channel
         self.LklCom_jfactor_class = LklCom_jfactor_class
@@ -70,8 +76,9 @@ class LklCom_hdf5(LklCom):
         if combination_data is None:
             combination_data = LklCom_jfactor_class.combination_data
         self.combination_data = combination_data
+        self.sigmav_precision = sigmav_precision
 
-    def read_tstables(self, simulation=-1):
+    def read_tstables(self, simulation=0):
         """
         Read the likelihood or tstables from the lklcom hdf5 file.
         Parameters
@@ -104,7 +111,7 @@ class LklCom_hdf5(LklCom):
             tstables[source][collaboration] = {}
             
             # Getting the table from the lklcom hdf5 file.
-            table_name = "data" if simulation == -1 else "simu_{}".format(simulation)
+            table_name = "data" if simulation == 0 else "simu_{}".format(simulation)
             table = eval("h5.root.{}.{}.{}.{}".format(collaboration, source, self.channel, table_name))
 
             # Reading the data from the table.
@@ -139,9 +146,10 @@ class LklCom_txtdir(LklCom):
     def __init__(self,
                 channel,
                 LklCom_jfactor_class,
-                combination_data=None
+                combination_data=None,
+                sigmav_precision=3
                 ):
-        super().__init__(channel, LklCom_jfactor_class, combination_data)
+        super().__init__(channel, LklCom_jfactor_class, combination_data, sigmav_precision=3)
             
         self.channel = channel
         self.LklCom_jfactor_class = LklCom_jfactor_class
@@ -150,9 +158,9 @@ class LklCom_txtdir(LklCom):
         if combination_data is None:
             combination_data = LklCom_jfactor_class.combination_data
         self.combination_data = combination_data
-
+        self.sigmav_precision = sigmav_precision
             
-    def read_tstables(self, simulation=-1):
+    def read_tstables(self, simulation=0):
         """
         Read the likelihood or tstables from the gLike txt files.
         Parameters
@@ -182,7 +190,7 @@ class LklCom_txtdir(LklCom):
             tstables[source][collaboration] = {}
             
             # Opening the txt files.
-            if simulation == -1:
+            if simulation == 0:
                 ts_file = open("{}/{}_{}_{}.txt".format(self.combination_data, self.channel, source, collaboration), "r")
             else:
                 ts_file = open("{}/{}_{}_{}_{}.txt".format(self.combination_data, self.channel, source, collaboration, simulation), "r")
@@ -209,6 +217,7 @@ class LklCom_txtdir(LklCom):
             tstables[source][collaboration]["masses"] = masses
             tstables[source][collaboration]["sigmav_range"] = sigmav_range
             tstables[source][collaboration]["ts_values"] = ts_values
+
         return tstables
 
 
@@ -218,9 +227,10 @@ class LklCom_custom(LklCom):
                 channel,
                 LklCom_jfactor_class,
                 combination_data,
-                simulations
+                simulations,
+                sigmav_precision=3
                 ):
-        super().__init__(channel, LklCom_jfactor_class, combination_data, simulations)
+        super().__init__(channel, LklCom_jfactor_class, combination_data, simulations, sigmav_precision=3)
     
         self.channel = channel
         self.LklCom_jfactor_class = LklCom_jfactor_class
@@ -230,8 +240,9 @@ class LklCom_custom(LklCom):
         self.tstables = {}
         for simulation in self.simulations:
             self.tstables[simulation] = combination_data[simulation]
+        self.sigmav_precision = sigmav_precision
 
-    def read_tstables(self, simulation=-1):
+    def read_tstables(self, simulation=0):
         """
         Read the likelihood or tstables from the custom tstables dict.
         Parameters

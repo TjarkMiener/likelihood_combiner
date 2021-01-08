@@ -1,19 +1,22 @@
 Hardware:
   cpu_counts: 30
 Data:
-  data_directory: /Users/tmiener/Desktop/likelihood_combiner/data/
+  input: '/Users/tmiener/deeplearning/likelihood_combiner/resources/test_io.hdf5'
+  buildin_j_factors: 'GeringerSameth'
+  resources: '/Users/tmiener/deeplearning/likelihood_combiner/resources/'
+  custom_logJ: {"Segue1": {"IACT": 19.25}}
+  custom_DlogJ: {"Segue1": {"IACT": 0.25}}
+  j_nuisance: True
   simulations: 30
-  j_nuisance: true
-  j_factors: 'GeringerSameth'
-  # Define the sigma ranges
-  sigmaV_min: 1e-28
-  sigmaV_max: 1e-18
-  sigmaV_nPoints: 1001
+  # Define the sigmav range
+  #sigmav_min: 1e-28
+  #sigmav_max: 1e-18
+  #sigmav_nPoints: 1001
 Configuration:
   channels: ['bb', 'mumu', 'tautau', 'WW']
   sources: ['Segue1', 'UrsaMajorII']
   collaborations: {'IACT': 2.6}
 Output:
-  output_directory: /Users/tmiener/Desktop/likelihood_combiner/output/
-  hdf5_dataset: lklcom.h5
+  directory: "/Users/tmiener/deeplearning/likelihood_combiner/output/"
+  file: "/Users/tmiener/deeplearning/likelihood_combiner/output/test_output.hdf5"
   collaboration_plot: false
