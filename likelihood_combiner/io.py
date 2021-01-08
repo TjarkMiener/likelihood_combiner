@@ -129,8 +129,9 @@ def gLike_to_lklcom(input_dir,
     # Overwriting the mode to "a" (append), since the lklcom hdf5 file is opened
     # inside the function write_to_lklcom().
     if mode == "w":
-        os.remove(output_file)
         mode = "a"
+        if os.path.isfile(output_file):
+            os.remove(output_file)
 
     # Getting the txt files of the input directory.
     files = np.array([x for x in os.listdir(input_dir) if x.endswith(".txt")])
