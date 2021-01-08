@@ -128,6 +128,10 @@ class LklCom_hdf5(LklCom):
             tstables[source][collaboration]["masses"] = masses
             tstables[source][collaboration]["sigmav_range"] = sigmav_range
             tstables[source][collaboration]["ts_values"] = ts_values
+
+        # Closing hdf5 file.
+        h5.close()
+        
         return tstables
 
 class LklCom_txtdir(LklCom):
