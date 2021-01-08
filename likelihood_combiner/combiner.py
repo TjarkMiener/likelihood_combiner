@@ -17,6 +17,7 @@ def combiner(sigmav_range,
             sigmavULs=None,
             sigmavULs_Jnuisance=None,
             simulation_counter=None,
+            total_number_of_simulation=None,
             simulations=[0]):
             
     channel = LklCom_reader_class.get_channel()
@@ -116,9 +117,8 @@ def combiner(sigmav_range,
             sigmavULs[h5_key] = svUL
             sigmavULs_Jnuisance[h5_key] = svUL_Jnuisance
 
-            if simulation > 0:
-                simulation_counter.value += 1
-                progress_bar(simulation_counter.value,np.int(config['Data']['simulations']))
+            simulation_counter.value += 1
+            progress_bar(simulation_counter.value,np.int(total_number_of_simulation))
 
     return
 

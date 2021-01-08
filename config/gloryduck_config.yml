@@ -1,23 +1,22 @@
 Hardware:
-  cpu_counts: 30
+  cpu_counts: 20
 Data:
-  data_directory: /data2/users/tjark/likelihood_combiner/data/
-  simulations: 300
-  j_nuisance: true
-  j_factors: 'GeringerSameth'
-  #j_factors: 'Bonnivard'
-  # Define the sigma ranges
-  sigmaV_min: 1e-28
-  sigmaV_max: 1e-18
-  sigmaV_nPoints: 1001
+  input: '/data2/users/tjark/likelihood_combiner/resources/gloryduck.hdf5'
+  #input: '/data2/users/tjark/likelihood_combiner/resources/gloryduck/'
+  buildin_j_factors: 'GeringerSameth'
+  #buildin_j_factors: 'Bonnivard'
+  resources: '/data2/users/tjark/likelihood_combiner/resources/'
+  j_nuisance: True
+  simulations: 30
+  # Define the sigmav range
+  #sigmav_min: 1e-28
+  #sigmav_max: 1e-18
+  #sigmav_nPoints: 1001
 Configuration:
   channels: ['bb', 'tautau', 'ee', 'mumu', 'tt', 'gammagamma', 'WW', 'ZZ']
   sources: ['BootesI', 'CanesVenaticiI', 'CanesVenaticiII', 'Carina', 'ComaBerenices', 'Draco', 'Fornax', 'Hercules', 'LeoI', 'LeoII', 'LeoIV', 'LeoT', 'LeoV', 'Sculptor', 'Segue1', 'Segue2', 'Sextans', 'UrsaMajorI', 'UrsaMajorII', 'UrsaMinor']
   collaborations: {'HAWC': 2.6, 'Fermi-LAT': 2.6, 'MAGIC': 2.6, 'VERITAS': 2.6, 'HESS': 0.1}
   #collaborations: {'HAWC': 9.9, 'Fermi-LAT': 9.9, 'MAGIC': 9.9, 'VERITAS': 9.9, 'HESS': 0.1}
 Output:
-  output_directory: /data2/users/tjark/likelihood_combiner/GloryDuck/
-  hdf5_dataset: gloryduck_lklcom.h5
-  collaboration_plot: true
-
-
+  directory: "/data2/users/tjark/likelihood_combiner/resources/output/"
+  file: "/data2/users/tjark/likelihood_combiner/resources/output/test_output.hdf5"

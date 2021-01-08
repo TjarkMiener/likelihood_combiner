@@ -1,7 +1,8 @@
 Hardware:
-  cpu_counts: 30
+  cpu_counts: 31
 Data:
-  input: '/Users/tmiener/deeplearning/likelihood_combiner/resources/test_io.hdf5'
+  input: '/Users/tmiener/deeplearning/likelihood_combiner/resources/mock_data.hdf5'
+  #input: '/Users/tmiener/deeplearning/likelihood_combiner/resources/mock_txt_data/'
   buildin_j_factors: 'GeringerSameth'
   resources: '/Users/tmiener/deeplearning/likelihood_combiner/resources/'
   custom_logJ: {"Segue1": {"IACT": 19.25}}
@@ -18,5 +19,4 @@ Configuration:
   collaborations: {'IACT': 2.6}
 Output:
   directory: "/Users/tmiener/deeplearning/likelihood_combiner/output/"
-  file: "/Users/tmiener/deeplearning/likelihood_combiner/output/test_output.hdf5"
-  collaboration_plot: false
+  file: "/Users/tmiener/deeplearning/likelihood_combiner/output/test_output_hdf5.hdf5"
