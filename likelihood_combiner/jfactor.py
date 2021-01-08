@@ -19,7 +19,8 @@ class JFactor:
                 combination_data=None,
                 precision=2,
                 logJ=None,
-                DlogJ=None
+                DlogJ=None,
+                jnuisance=True
                 ):
     
         self.sources = sources
@@ -29,6 +30,7 @@ class JFactor:
         self.precision = precision
         self.logJ = logJ
         self.DlogJ = DlogJ
+        self.jnuisance = jnuisance
         self.DlogJ_comb = None
         self.angular_separations = None
         self.logJ_profile = None
@@ -55,7 +57,10 @@ class JFactor:
 
     def get_DlogJ(self):
         return self.DlogJ
-
+        
+    def get_jnuisance(self):
+        return self.jnuisance
+        
     def get_DlogJ_comb(self):
         return self.DlogJ_comb
         
@@ -70,6 +75,26 @@ class JFactor:
 
     def get_combination_info(self):
         return self.combination_info
+        
+    def compute_Jnuisance(sigmav, tstable, DlogJ, sigmav_min=1e-28, sigmav_max=1e-18):
+        if not np.all(tstable==tstable[0]):
+            maxdev = 6. * DlogJ
+            profiling_steps = 10000
+            l = np.linspace(-maxdev, maxdev, num=profiling_steps, endpoint=True)
+            lLkl = -2.*np.log((np.exp(-np.power(l,2)/(2.*np.power(DlogJ,2)))/(np.sqrt(2.*np.pi)*DlogJ*np.log(10))))
+            lin_interpolation = interp1d(sigmav, tstable, kind='linear', fill_value='extrapolate')
+            min_ind = np.min(np.where(tstable == np.min(tstable)))
+            ts_val = []
+            for sv in sigmav:
+                g = sv/np.power(10,l)
+                gSpline = lin_interpolation(g)
+                gLkl = np.where(((g>sigmav_min) & (g<sigmav_max)), gSpline,  np.nan)
+                totLkl = gLkl + lLkl
+                ts_val.append(np.nanmin(totLkl))
+            ts_val= np.array(ts_val)
+            dis = ts_val[min_ind] - tstable[min_ind]
+            tstable = ts_val - dis
+        return tstable
 
     def _get_jfactors(self):
         logJ, DlogJ = {}, {}
@@ -146,8 +171,9 @@ class Bonnivard(JFactor):
                 sources,
                 collaborations,
                 combination_data=None,
-                precision=2):
-        super().__init__(sources, collaborations, resource, combination_data, precision=2)
+                precision=2,
+                jnuisance=True):
+        super().__init__(sources, collaborations, resource, combination_data, precision=2, jnuisance=True)
         
         self.resource = resource
         self.sources = sources
@@ -157,7 +183,9 @@ class Bonnivard(JFactor):
         self.combination_info = super()._construct_combination_info()
         self.angular_separations, self.logJ_profile, self.DlogJ_profile = self._construct_jprofile()
         self.logJ, self.DlogJ = super()._get_jfactors()
-        self.DlogJ_comb = super()._compute_DlogJ_for_combination()
+        self.jnuisance = jnuisance
+        if self.jnuisance:
+            self.DlogJ_comb = super()._compute_DlogJ_for_combination()
                     
     def _construct_jprofile(self):
         # Credits: V.Poireu (LAPP)
@@ -178,8 +206,9 @@ class Custom(JFactor):
 
     def __init__(self,
                 logJ,
-                DlogJ):
-        super().__init__(logJ, DlogJ)
+                DlogJ,
+                jnuisance=True):
+        super().__init__(logJ, DlogJ, jnuisance=True)
         
         # The arguments logJ and DlogJ should be only used to hardcode the log J-factor
         # and it's uncertainty.
@@ -187,7 +216,9 @@ class Custom(JFactor):
         self.logJ = logJ
         self.DlogJ = DlogJ
         self.combination_info = super()._construct_combination_info()
-        self.DlogJ_comb = super()._compute_DlogJ_for_combination()
+        self.jnuisance = jnuisance
+        if self.jnuisance:
+            self.DlogJ_comb = super()._compute_DlogJ_for_combination()
 
 class GeringerSameth(JFactor):
 
@@ -196,8 +227,9 @@ class GeringerSameth(JFactor):
                 sources,
                 collaborations,
                 combination_data=None,
-                precision=2):
-        super().__init__(sources, collaborations, combination_data, precision=2)
+                precision=2,
+                jnuisance=True):
+        super().__init__(sources, collaborations, combination_data, precision=2, jnuisance=True)
                 
         self.resource = resource
         self.sources = sources
@@ -207,7 +239,9 @@ class GeringerSameth(JFactor):
         self.combination_info = super()._construct_combination_info()
         self.angular_separations, self.logJ_profile, self.DlogJ_profile = self._construct_jprofile()
         self.logJ, self.DlogJ = super()._get_jfactors()
-        self.DlogJ_comb = super()._compute_DlogJ_for_combination()
+        self.jnuisance = jnuisance
+        if self.jnuisance:
+            self.DlogJ_comb = super()._compute_DlogJ_for_combination()
 
     def _construct_jprofile(self):
         angular_separations, logJ_profiles, DlogJ_profiles = {}, {}, {}
