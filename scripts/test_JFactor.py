@@ -1,21 +1,17 @@
 import likelihood_combiner as lklcom
 
 lklcom_dir = "/Users/tmiener/deeplearning/likelihood_combiner/"
-resource_GS = lklcom_dir + "/resources/GeringerSameth/intJ_cf.txt"
-resource_BV = lklcom_dir + "/resources/Bonnivard/"
-lklcom_file = lklcom_dir + "/resources/test_io.hdf5"
+lklcom_file = lklcom_dir + "/input/mock_data.hdf5"
 output_dir = lklcom_dir+ "/test/"
 
-geringer_jfactor = lklcom.jfactor.GeringerSameth(
-                                        sources=["Segue1", "Draco"],
+geringer_jfactor = lklcom.jfactor.GeringerSameth(sources=["Segue1", "Draco"],
                                         collaborations={"IACT": 0.12, "MAGIC": 0.1, "HAWC":2.6})
 print(geringer_jfactor)
 print(geringer_jfactor.get_logJ())
 print(geringer_jfactor.get_DlogJ())
 print(geringer_jfactor.get_DlogJ_comb())
 
-geringer_jfactor = lklcom.jfactor.GeringerSameth(resource=resource_GS,
-                                        sources=["Segue1", "Draco"],
+geringer_jfactor = lklcom.jfactor.GeringerSameth(sources=["Segue1", "Draco"],
                                         collaborations={"IACT": 2.6},
                                         combination_data=lklcom_file)
 print(geringer_jfactor)
@@ -30,8 +26,7 @@ tstables = lklcom_reader.read_tstables()
 print(tstables)
 
 
-bonnivard_jfactor = lklcom.jfactor.Bonnivard(
-                                        sources=["UrsaMajorII"],
+bonnivard_jfactor = lklcom.jfactor.Bonnivard(sources=["UrsaMajorII"],
                                         collaborations={"IACT": 0.1},
                                         combination_data=output_dir,
                                         precision=4)

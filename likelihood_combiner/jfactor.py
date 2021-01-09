@@ -176,7 +176,7 @@ class Bonnivard(JFactor):
         super().__init__(sources, collaborations, resource, combination_data, precision=2, jnuisance=True)
         
         if resource is None:
-            resource = os.path.join(os.path.dirname(__file__), "../resources/Bonnivard/")
+            resource = os.path.join(os.path.dirname(__file__), "resources/Bonnivard/")
         self.resource = resource
         self.sources = sources
         self.collaborations = collaborations
@@ -234,7 +234,7 @@ class GeringerSameth(JFactor):
         super().__init__(sources, collaborations, resource=None, combination_data=None, precision=2, jnuisance=True)
         
         if resource is None:
-            resource = os.path.join(os.path.dirname(__file__), "../resources/GeringerSameth/intJ_cf.txt")
+            resource = os.path.join(os.path.dirname(__file__), "resources/GeringerSameth/intJ_cf.txt")
         self.resource = resource
         self.sources = sources
         self.collaborations = collaborations
