@@ -29,8 +29,8 @@ LikelihoodCombiner: Combining likelihoods from different experiments.
 
 
 
-.. image:: images/Gloryduck_logo.png
-   :target: images/Gloryduck_logo.png
+.. image:: https://raw.githubusercontent.com/TjarkMiener/likelihood_combiner/blob/master/images/Gloryduck_logo.png
+   :target: https://github.com/TjarkMiener/likelihood_combiner/blob/master/images/Gloryduck_logo.png
    :alt: Gloryduck logo
 
 
