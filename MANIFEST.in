@@ -1,2 +1,2 @@
-recursive-include resources/GeringerSameth/intJ_cf.txt
+recursive-include resources/GeringerSameth/ *.txt
 recursive-include resources/Bonnivard/ *.output
