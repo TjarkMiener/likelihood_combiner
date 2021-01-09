@@ -167,14 +167,16 @@ class JFactor:
 class Bonnivard(JFactor):
 
     def __init__(self,
-                resource,
                 sources,
                 collaborations,
+                resource=None,
                 combination_data=None,
                 precision=2,
                 jnuisance=True):
         super().__init__(sources, collaborations, resource, combination_data, precision=2, jnuisance=True)
         
+        if resource is None:
+            resource = os.path.join(os.path.dirname(__file__), "../resources/Bonnivard/")
         self.resource = resource
         self.sources = sources
         self.collaborations = collaborations
@@ -223,14 +225,16 @@ class Custom(JFactor):
 class GeringerSameth(JFactor):
 
     def __init__(self,
-                resource,
                 sources,
                 collaborations,
+                resource=None,
                 combination_data=None,
                 precision=2,
                 jnuisance=True):
-        super().__init__(sources, collaborations, combination_data, precision=2, jnuisance=True)
-                
+        super().__init__(sources, collaborations, resource=None, combination_data=None, precision=2, jnuisance=True)
+        
+        if resource is None:
+            resource = os.path.join(os.path.dirname(__file__), "../resources/GeringerSameth/intJ_cf.txt")
         self.resource = resource
         self.sources = sources
         self.collaborations = collaborations
