@@ -28,7 +28,7 @@ LikelihoodCombiner: Combining likelihoods from different experiments.
    :alt: Anaconda-Server Badge
 
 
-.. figure::  https://raw.githubusercontent.com/TjarkMiener/likelihood_combiner/blob/master/images/Gloryduck_logo.png
+.. figure::  https://github.com/TjarkMiener/likelihood_combiner/blob/master/images/Gloryduck_logo.png
    :alt: Gloryduck logo
 
 
