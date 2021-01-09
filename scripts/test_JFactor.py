@@ -6,7 +6,7 @@ resource_BV = lklcom_dir + "/resources/Bonnivard/"
 lklcom_file = lklcom_dir + "/resources/test_io.hdf5"
 output_dir = lklcom_dir+ "/test/"
 
-geringer_jfactor = lklcom.jfactor.GeringerSameth(resource=resource_GS,
+geringer_jfactor = lklcom.jfactor.GeringerSameth(
                                         sources=["Segue1", "Draco"],
                                         collaborations={"IACT": 0.12, "MAGIC": 0.1, "HAWC":2.6})
 print(geringer_jfactor)
@@ -30,7 +30,7 @@ tstables = lklcom_reader.read_tstables()
 print(tstables)
 
 
-bonnivard_jfactor = lklcom.jfactor.Bonnivard(resource=resource_BV,
+bonnivard_jfactor = lklcom.jfactor.Bonnivard(
                                         sources=["UrsaMajorII"],
                                         collaborations={"IACT": 0.1},
                                         combination_data=output_dir,
