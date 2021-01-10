@@ -5,6 +5,7 @@ channels:
     - menpo
 dependencies:
     - python
+    - jupyter
     - matplotlib
     - numpy>=1.15.0
     - scipy
