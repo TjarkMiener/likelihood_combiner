@@ -1,0 +1,33 @@
+{
+    "license": "GPL-3.0", 
+    "contributors": [
+        {
+            "orcid": "0000-0001-7282-2394",
+            "affiliation": "Instituto de F\u00edsica de Part\u00edculas y del Cosmos and Departamento de EMFTEL, Universidad Complutense de Madrid, Madrid, Spain", 
+            "type": "Researcher", 
+            "name": "Jos\u00e9 Luis Contreras"
+        }
+    ], 
+    "language": "eng", 
+    "title": "LklCom: Combining likelihoods from different experiments.", 
+    "upload_type": "software", 
+    "keywords": [
+        "Dark matter",
+        "High energy physics", 
+        "Gamma rays", 
+        "Likelihood combination"
+    ], 
+    "creators": [
+        {
+            "affiliation": "Instituto de F\u00edsica de Part\u00edculas y del Cosmos and Departamento de EMFTEL, Universidad Complutense de Madrid, Madrid, Spain", 
+            "name": "Tjark Miener"
+        }, 
+        {
+            "orcid": "0000-0003-3343-0755",
+            "affiliation": "Instituto de F\u00edsica de Part\u00edculas y del Cosmos and Departamento de EMFTEL, Universidad Complutense de Madrid, Madrid, Spain", 
+            "name": "Daniel Nieto"
+        }
+    ], 
+    "access_right": "open", 
+    "description": "<p>LklCom is a high-level Python package providing a backend for combining likelihoods from different experiments.</p>"
+}
