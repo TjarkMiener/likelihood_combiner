@@ -83,7 +83,7 @@ Then, create and enter a new Python3 environment with:
 .. code-block:: bash
 
    conda create -n [ENVIRONMENT_NAME]
-   source activate [ENVIRONMENT_NAME]
+   conda activate [ENVIRONMENT_NAME]
 
 From the environment, add the necessary channels for all dependencies:
 
