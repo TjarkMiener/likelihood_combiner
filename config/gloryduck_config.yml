@@ -1,13 +1,12 @@
 Hardware:
   cpu_counts: 20
 Data:
-  input: '/data2/users/tjark/likelihood_combiner/resources/gloryduck.hdf5'
-  #input: '/data2/users/tjark/likelihood_combiner/resources/gloryduck/'
+  input: '/data2/users/tjark/likelihood_combiner/input/gloryduck.hdf5'
+  #input: '/data2/users/tjark/likelihood_combiner/input/gloryduck/'
   buildin_j_factors: 'GeringerSameth'
   #buildin_j_factors: 'Bonnivard'
-  resources: '/data2/users/tjark/likelihood_combiner/resources/'
   j_nuisance: True
-  simulations: 30
+  simulations: 300
   # Define the sigmav range
   #sigmav_min: 1e-28
   #sigmav_max: 1e-18
@@ -18,5 +17,5 @@ Configuration:
   collaborations: {'HAWC': 2.6, 'Fermi-LAT': 2.6, 'MAGIC': 2.6, 'VERITAS': 2.6, 'HESS': 0.1}
   #collaborations: {'HAWC': 9.9, 'Fermi-LAT': 9.9, 'MAGIC': 9.9, 'VERITAS': 9.9, 'HESS': 0.1}
 Output:
-  directory: "/data2/users/tjark/likelihood_combiner/resources/output/"
-  file: "/data2/users/tjark/likelihood_combiner/resources/output/test_output.hdf5"
+  directory: "/data2/users/tjark/likelihood_combiner/output/"
+  file: "/data2/users/tjark/likelihood_combiner/output/test_output.hdf5"
