@@ -16,7 +16,7 @@ setup(name='lklcom',
       long_description=long_description,
       long_description_content_type='text/x-rst',
       url='https://github.com/TjarkMiener/likelihood_combiner',
-      license='BSD-3-Clause',
+      license='GPL-3.0',
       packages=['likelihood_combiner'],
       install_requires=[
           'matplotlib',
