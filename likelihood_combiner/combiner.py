@@ -69,6 +69,7 @@ def combiner(sigmav_range,
 
             # Combine ts values for all dSphs
             for mass in total_masses:
+                source_mass = "{}_{}".format(source, mass)
                 if str(mass) not in combined_ts:
                     combined_ts[str(mass)] = np.zeros(len(sigmav_range))
                     if jnuisance:
