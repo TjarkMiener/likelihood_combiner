@@ -27,18 +27,11 @@ if __name__ == "__main__":
         config = yaml.safe_load(config_file)
     
     try:
-        resources = config['Data']['resources']
-        if resources is None:
-            raise KeyError
-    except KeyError:
-        resources = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/"))
-        
-    try:
         input = config['Data']['input']
         if input is None:
             raise KeyError
     except KeyError:
-        input = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/mock_data.hdf5"))
+        input = os.path.abspath(os.path.join(os.path.dirname(__file__), "../input/mock_data.hdf5"))
 
     try:
         output_dir = config['Output']['directory']
@@ -52,16 +45,12 @@ if __name__ == "__main__":
 
     # Initializing of the LklCom jfactor class
     if config['Data']['buildin_j_factors'] == "GeringerSameth":
-        resource = resources + "/GeringerSameth/intJ_cf.txt"
-        LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(resource=resource,
-                                                    sources=config['Configuration']['sources'],
+        LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(sources=config['Configuration']['sources'],
                                                     collaborations=config['Configuration']['collaborations'],
                                                     combination_data=input,
                                                     jnuisance=config['Data']['j_nuisance'])
     elif config['Data']['buildin_j_factors'] == "Bonnivard":
-        resource = resources + "/Bonnivard/"
-        LklCom_jfactor_class = lklcom.jfactor.Bonnivard(resource=resource,
-                                                    sources=config['Configuration']['sources'],
+        LklCom_jfactor_class = lklcom.jfactor.Bonnivard(sources=config['Configuration']['sources'],
                                                     collaborations=config['Configuration']['collaborations'],
                                                     combination_data=input,
                                                     jnuisance=config['Data']['j_nuisance'])
@@ -86,8 +75,4 @@ if __name__ == "__main__":
 
     combiner(sigmav_range=sigmav_range,
             LklCom_reader_class=LklCom_reader_class,
-            output=output_dir,
-            sigmavULs=None,
-            sigmavULs_Jnuisance=None,
-            simulation_counter=None,
-            simulations=[args.simulation])
+            output=output_dir)

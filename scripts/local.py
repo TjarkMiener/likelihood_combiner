@@ -23,18 +23,11 @@ if __name__ == "__main__":
         config = yaml.safe_load(config_file)
     
     try:
-        resources = config['Data']['resources']
-        if resources is None:
-            raise KeyError
-    except KeyError:
-        resources = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/"))
-        
-    try:
         input = config['Data']['input']
         if input is None:
             raise KeyError
     except KeyError:
-        input = os.path.abspath(os.path.join(os.path.dirname(__file__), "../resources/mock_data.hdf5"))
+        input = os.path.abspath(os.path.join(os.path.dirname(__file__), "../input/mock_data.hdf5"))
 
     try:
         output_file = config['Output']['file']
@@ -42,19 +35,22 @@ if __name__ == "__main__":
             raise KeyError
     except KeyError:
         output_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../output/lklcom.hdf5"))
+        
+    try:
+        output_dir = config['Output']['directory']
+        if output_dir is None:
+            raise KeyError
+    except KeyError:
+        output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../output/"))
     
     # Initializing of the LklCom jfactor class
     if config['Data']['buildin_j_factors'] == "GeringerSameth":
-        resource = resources + "/GeringerSameth/intJ_cf.txt"
-        LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(resource=resource,
-                                                    sources=config['Configuration']['sources'],
+        LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(sources=config['Configuration']['sources'],
                                                     collaborations=config['Configuration']['collaborations'],
                                                     combination_data=input,
                                                     jnuisance=config['Data']['j_nuisance'])
     elif config['Data']['buildin_j_factors'] == "Bonnivard":
-        resource = resources + "/Bonnivard/"
-        LklCom_jfactor_class = lklcom.jfactor.Bonnivard(resource=resource,
-                                                    sources=config['Configuration']['sources'],
+        LklCom_jfactor_class = lklcom.jfactor.Bonnivard(sources=config['Configuration']['sources'],
                                                     collaborations=config['Configuration']['collaborations'],
                                                     combination_data=input,
                                                     jnuisance=config['Data']['j_nuisance'])
@@ -79,11 +75,6 @@ if __name__ == "__main__":
         if os.path.isdir(input):
             LklCom_reader_class = lklcom.reader.LklCom_txtdir(channel=channel,
                                                             LklCom_jfactor_class=LklCom_jfactor_class)
-
-        # Create a multiprocessing.Manager dict to share memory between the parallel processes
-        manager = Manager()
-        sigmavULs = manager.dict()
-        sigmavULs_Jnuisance = manager.dict()
         
         # Set up the hardware settings for the parallel processing
         try:
@@ -100,48 +91,58 @@ if __name__ == "__main__":
             cpu_counts = simulations
 
         # Set up all processes
-        simulation_counter = manager.Value("i", 0)
-        progress_bar(simulation_counter.value, simulations)
-        parallel_simulations = np.array_split(np.arange(0,simulations), cpu_counts)
-        jobs = []
-        for parallel_simulation in parallel_simulations:
-            process = Process(target=combiner,
-                              args=(sigmav_range,
-                                    LklCom_reader_class,
-                                    output_file,
-                                    sigmavULs,
-                                    sigmavULs_Jnuisance,
-                                    simulation_counter,
-                                    simulations,
-                                    parallel_simulation))
-            jobs.append(process)
-        try:
-            # Start all parallel processes
-            for j in jobs:
-                j.start()
-            # Wait for all processes to complete
-            for j in jobs:
-                j.join()
+        if simulations <= 1:
+            combiner(sigmav_range=sigmav_range,
+                    LklCom_reader_class=LklCom_reader_class,
+                    output=output_dir)
+        else:
+            # Create a multiprocessing.Manager dict to share memory between the parallel processes
+            manager = Manager()
+            sigmavULs = manager.dict()
+            sigmavULs_Jnuisance = manager.dict()
+            
+            simulation_counter = manager.Value("i", 0)
+            progress_bar(simulation_counter.value, simulations)
+            parallel_simulations = np.array_split(np.arange(0,simulations), cpu_counts)
+            jobs = []
+            for parallel_simulation in parallel_simulations:
+                process = Process(target=combiner,
+                                    args=(sigmav_range,
+                                        LklCom_reader_class,
+                                        output_file,
+                                        sigmavULs,
+                                        sigmavULs_Jnuisance,
+                                        simulation_counter,
+                                        simulations,
+                                        parallel_simulation))
+                jobs.append(process)
+            try:
+                # Start all parallel processes
+                for j in jobs:
+                    j.start()
+                # Wait for all processes to complete
+                for j in jobs:
+                    j.join()
 
-        except KeyboardInterrupt:
-            print("Caught keyboard interrupt, killing all processes...")
-            for j in jobs:
-                j.terminate()
+            except KeyboardInterrupt:
+                print("Caught keyboard interrupt, killing all processes...")
+                for j in jobs:
+                    j.terminate()
+            
+            # Convert multiprocessing.managers.DictProxy to python 'dict'
+            sigmavULs = dict(sigmavULs)
+            sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
 
-        # Convert multiprocessing.managers.DictProxy to python 'dict'
-        sigmavULs = dict(sigmavULs)
-        sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
-
-        svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
-        for key, value in dict(sigmavULs).items():
-            if channel in key: svUL[key.replace('{}_'.format(channel),'')] = value
-        svUL = pd.DataFrame(data=svUL)
-        # Write the panda DataFrames into the hdf5 file
-        svUL.to_hdf(output_file, key='{}/sigmavULs'.format(channel), mode='a')
-        if config['Data']['j_nuisance']:
-            svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
-            for key, value in dict(sigmavULs_Jnuisance).items():
-                if channel in key: svUL_Jnuisance[key.replace('{}_'.format(channel),'')] = value
-            svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
+            svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
+            for key, value in dict(sigmavULs).items():
+                if channel in key: svUL[key.replace('{}_'.format(channel),'')] = value
+            svUL = pd.DataFrame(data=svUL)
             # Write the panda DataFrames into the hdf5 file
-            svUL_Jnuisance.to_hdf(output_file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
+            svUL.to_hdf(output_file, key='{}/sigmavULs'.format(channel), mode='a')
+            if config['Data']['j_nuisance']:
+                svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
+                for key, value in dict(sigmavULs_Jnuisance).items():
+                    if channel in key: svUL_Jnuisance[key.replace('{}_'.format(channel),'')] = value
+                svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
+                # Write the panda DataFrames into the hdf5 file
+                svUL_Jnuisance.to_hdf(output_file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')

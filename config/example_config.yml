@@ -1,10 +1,9 @@
 Hardware:
   cpu_counts: 31
 Data:
-  input: '/Users/tmiener/deeplearning/likelihood_combiner/resources/mock_data.hdf5'
-  #input: '/Users/tmiener/deeplearning/likelihood_combiner/resources/mock_txt_data/'
+  input: '/Users/tmiener/deeplearning/likelihood_combiner/input/mock_data.hdf5'
+  #input: '/Users/tmiener/deeplearning/likelihood_combiner/input/mock_txt_data/'
   buildin_j_factors: 'GeringerSameth'
-  resources: '/Users/tmiener/deeplearning/likelihood_combiner/resources/'
   custom_logJ: {"Segue1": {"IACT": 19.25}}
   custom_DlogJ: {"Segue1": {"IACT": 0.25}}
   j_nuisance: True
