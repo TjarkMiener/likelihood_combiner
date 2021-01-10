@@ -1,5 +1,5 @@
 
-LikelihoodCombiner: Combining likelihoods from different experiments.
+LlkCom: Combining likelihoods from different experiments.
 =====================================================================
 
 
@@ -47,7 +47,7 @@ Clone the LikelihoodCombiner repository:
    cd </installation/path>
    git clone https://github.com/TjarkMiener/likelihood_combiner
 
-Install Package with Anaconda
+Install Package with Anaconda/pypi
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Next, download and install `Anaconda <https://www.anaconda.com/download/>`_\ , or, for a minimal installation, `Miniconda <https://conda.io/miniconda.html>`_. Create a new conda environment that includes all the dependencies for LikelihoodCombiner:
@@ -64,6 +64,13 @@ Finally, install LikelihoodCombiner into the new conda environment with pip:
    cd </installation/path>/likelihood_combiner
    pip install --upgrade .
 
+Or install LikelihoodCombiner via pypi (tested for Linux users):
+
+.. code-block:: bash
+
+   conda activate lklcom
+   pip install lklcom
+
 NOTE for developers: If you wish to fork/clone the respository and make changes to any of the LikelihoodCombiner modules, the package must be reinstalled for the changes to take effect.
 
 Installing as a conda package
@@ -71,11 +78,11 @@ Installing as a conda package
 
 To install it as a conda package, first install Anaconda by following the instructions here: https://www.anaconda.com/distribution/.
 
-Then, create and enter a new Python 3.8 environment with:
+Then, create and enter a new Python3 environment with:
 
 .. code-block:: bash
 
-   conda create -n [ENVIRONMENT_NAME] python=3.8
+   conda create -n [ENVIRONMENT_NAME]
    source activate [ENVIRONMENT_NAME]
 
 From the environment, add the necessary channels for all dependencies:
@@ -93,12 +100,12 @@ Install the package:
 
 This should automatically install all dependencies (NOTE: this may take some time, as by default MKL is included as a dependency of NumPy and it is very large).
 
-If you want to import any functionality from LikelihoodCombiner into your own Python scripts, then you are all set. However, if you wish to make use of any of the scripts in likelihood_combiner/scripts (like {local/cluster}.py), you should also clone the repository locally and checkout the corresponding tag (i.e. for version v0.4.1):
+If you want to import any functionality from LikelihoodCombiner into your own Python scripts, then you are all set. However, if you wish to make use of any of the scripts in likelihood_combiner/scripts (like {local/cluster}.py), you should also clone the repository locally and checkout the corresponding tag (i.e. for version v0.5.0):
 
 .. code-block:: bash
 
    git clone https://github.com/TjarkMiener/likelihood_combiner
-   git checkout v0.4.1
+   git checkout v0.5.0
 
 LikelihoodCombiner should already have been installed in your environment by Conda, so no further installation steps (i.e. with setuptools or pip) are necessary and you should be able to run scripts/{local/cluster}.py directly.
 
@@ -106,7 +113,8 @@ Dependencies
 ^^^^^^^^^^^^
 
 
-* Python 3.8.X
+* Python3
+* Jupyter
 * NumPy
 * SciPy
 * Pandas
