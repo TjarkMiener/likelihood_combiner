@@ -33,8 +33,6 @@ def run_local_on_linux(settings, input, output):
     
     """
 
-    tables.open(output, "w")
-
     # Initializing of the LklCom jfactor class
     if 'buildin_j_factors' not in settings['Data']:
         settings['Data']['buildin_j_factors'] = "Custom"
