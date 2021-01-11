@@ -26,6 +26,10 @@ LlkCom: Combining likelihoods from different experiments.
     :target: https://pypi.org/project/lklcom/
     :alt: Latest Release
 
+.. image:: https://readthedocs.org/projects/lklcom/badge/?version=latest
+    :target: https://lklcom.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/license.svg
    :target: https://anaconda.org/tmiener/likelihood_combiner
