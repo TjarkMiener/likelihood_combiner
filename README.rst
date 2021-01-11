@@ -8,6 +8,10 @@ LlkCom: Combining likelihoods from different experiments.
    :alt: DOI
 
 
+.. image:: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
+   :target: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
+
+
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/version.svg
    :target: https://anaconda.org/tmiener/likelihood_combiner
    :alt: Anaconda-Server Badge
