@@ -22,7 +22,10 @@ install:
       - conda update -q conda
         # Useful for debugging any issues with conda
       - conda info -a
-      - conda env create -f environment.yml python=$TRAVIS_PYTHON_VERSION
+      - echo $TRAVIS_PYTHON_VERSION
+      # Edit the environment.yml file for the target Python version
+      - sed -i -E 's/(python=)(.*)/\1'$TRAVIS_PYTHON_VERSION'/' ./environment.yml
+      - conda env create -f environment.yml
       - conda activate lklcom
       - pip install codecov
       - pip install pytest-cov
