@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 from multiprocessing import Process, Manager, freeze_support
+import tables
 import pandas as pd
 import os
 import yaml
@@ -13,7 +14,7 @@ __all__ = [
     'run_local_on_linux'
 ]    
 
-def run_local_on_linux(settings, input=None, output=None):
+def run_local_on_linux(settings, input, output):
     """
     This function only works for linux users, because MacOS or Windows don't allow you to set up multiprocessing this way.
     See: https://www.pythonforthelab.com/blog/differences-between-multiprocessing-windows-and-linux/  
@@ -26,16 +27,13 @@ def run_local_on_linux(settings, input=None, output=None):
     input: `string`
         path to the input file or directory
     output: `string`
-        path to the output file
+        path to the output hdf5 file
     Returns
     -------
     
     """
 
-    if input is None:
-        input = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../input/mock_data.hdf5"))
-    if output is None:
-        output = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../output/lklcom.hdf5"))
+    tables.open(output, "w")
 
     # Initializing of the LklCom jfactor class
     if 'buildin_j_factors' not in settings['Data']:
