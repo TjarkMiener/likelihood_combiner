@@ -1,11 +1,12 @@
 package:
-  name: lklcom
+  name: likelihood_combiner
   version: {{ environ['VERSION'] }}
 
 source:
   git_url: https://github.com/TjarkMiener/likelihood_combiner
 
 build:
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   script_env:
    - VERSION
    - CONDA_BLD_PATH
