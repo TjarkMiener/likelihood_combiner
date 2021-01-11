@@ -1,8 +1,6 @@
 Hardware:
   cpu_counts: 31
 Data:
-  input: '/Users/tmiener/deeplearning/likelihood_combiner/input/mock_data.hdf5'
-  #input: '/Users/tmiener/deeplearning/likelihood_combiner/input/mock_txt_data/'
   buildin_j_factors: 'GeringerSameth'
   custom_logJ: {"Segue1": {"IACT": 19.25}}
   custom_DlogJ: {"Segue1": {"IACT": 0.25}}
@@ -13,9 +11,7 @@ Data:
   #sigmav_max: 1e-18
   #sigmav_nPoints: 1001
 Configuration:
-  channels: ['bb', 'mumu', 'tautau', 'WW']
+  channels: ['bb']
+  #channels: ['bb', 'mumu', 'tautau', 'WW']
   sources: ['Segue1', 'UrsaMajorII']
   collaborations: {'IACT': 2.6}
-Output:
-  directory: "/Users/tmiener/deeplearning/likelihood_combiner/output/"
-  file: "/Users/tmiener/deeplearning/likelihood_combiner/output/test_output_hdf5.hdf5"

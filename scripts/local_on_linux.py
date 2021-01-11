@@ -11,24 +11,17 @@ if __name__ == "__main__":
             'config_file',
             help="path to YAML configuration file with combining options")
     parser.add_argument(
-            '--channel',
-            default='bb')
-    parser.add_argument(
             '--input',
             default=None,
             help="path to input file or directory")
     parser.add_argument(
             '--output',
             default=None,
-            help="path to output directory")
-    parser.add_argument(
-            '--simulation',
-            default=0,
-            type=int,
-            help="number of the simulation")
-    args = parser.parse_args()
+            help="path to output file or directory")
 
+    args = parser.parse_args()
+    
     with open(args.config_file, 'r') as config_file:
         config = yaml.safe_load(config_file)
     
-    lklcom.cluster.run_cluster(settings=config, channel=args.channel, input=args.input, output=args.output, simulation=args.simulation)
+    lklcom.local.run_local_on_linux(settings=config, input=args.input, output=args.output)
