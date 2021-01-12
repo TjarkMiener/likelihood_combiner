@@ -1,3 +1,9 @@
+"""
+local.py
+=====
+Function to automatically set up multiprocessing (only Linux supported)
+"""
+
 import argparse
 import numpy as np
 from multiprocessing import Process, Manager, freeze_support
@@ -18,19 +24,17 @@ def run_local_on_linux(settings, input, output):
     """
     This function only works for linux users, because MacOS or Windows don't allow you to set up multiprocessing this way.
     See: https://www.pythonforthelab.com/blog/differences-between-multiprocessing-windows-and-linux/  
+
     Parameters
     ----------
     settings: dictionary with entries:
         'Hardware' : {'cpu_counts': `int`}
         'Data' : {'buildin_j_factors': `string`, 'j_nuisance': `boolean`, 'simulations': `int`}
         'Configuration' : {'channels': `numpy.ndarray of type string`, 'sources': `numpy.ndarray of type string`, 'collaborations': `dictionary`}
-    input: `string`
+    input: str
         path to the input file or directory
-    output: `string`
+    output: str
         path to the output hdf5 file
-    Returns
-    -------
-    
     """
 
     # Initializing of the LklCom jfactor class
