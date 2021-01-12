@@ -1,5 +1,5 @@
 package:
-  name: likelihood_combiner
+  name: lklcom
   version: {{ environ['VERSION'] }}
 
 source:
