@@ -20,17 +20,20 @@ __all__ = [
     'run_local_on_linux'
 ]    
 
-def run_local_on_linux(settings, input, output):
+def run_local_on_linux(settings,
+                       input,
+                       output):
     """
     This function only works for linux users, because MacOS or Windows don't allow you to set up multiprocessing this way.
     See: https://www.pythonforthelab.com/blog/differences-between-multiprocessing-windows-and-linux/  
 
     Parameters
     ----------
-    settings: dictionary with entries:
-        'Hardware' : {'cpu_counts': `int`}
-        'Data' : {'buildin_j_factors': `string`, 'j_nuisance': `boolean`, 'simulations': `int`}
-        'Configuration' : {'channels': `numpy.ndarray of type string`, 'sources': `numpy.ndarray of type string`, 'collaborations': `dictionary`}
+    settings: dict
+        settings of the combination, following the minimum skeleton (see example config file for more documentation):
+        {'Hardware' : {'cpu_counts': `int`},
+        'Data' : {'buildin_j_factors': `string`, 'j_nuisance': `boolean`, 'simulations': `int`},
+        'Configuration' : {'channels': `numpy.ndarray of type string`, 'sources': `numpy.ndarray of type string`, 'collaborations': `dictionary`}}
     input: str
         path to the input file or directory
     output: str

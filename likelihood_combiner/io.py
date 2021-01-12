@@ -41,7 +41,7 @@ def write_to_lklcom(collaboration,
     sigmav_range: `numpy.ndarray of type numpy.float32`
         sigmav range (ascending).
     lkl_dict: dict
-        likelihood dictionary.
+        likelihood data as dictionary with the DM mass as keys (str) and likelihood or ts values (ascending) as values (`numpy.ndarray of type numpy.float32`).
     output_file: str
         path to the lklcom hdf5 file.
     mode: str

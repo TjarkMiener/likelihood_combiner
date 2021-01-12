@@ -60,9 +60,9 @@ def plot_thermal_relic(ax=None, **kwargs):
     return ax
 
 
-def plot_sigmav_ULs_from_hdf5(file,
-                            channel,
-                            table_name='sigmavULs_Jnuisance',
+def plot_sigmav_ULs_from_hdf5(channel,
+                            file,
+                            key='sigmavULs_Jnuisance',
                             ax=None,
                             **kwargs):
     """
@@ -70,9 +70,12 @@ def plot_sigmav_ULs_from_hdf5(file,
 
     Parameters
     ----------
-    file: `panda readable hdf5 file`
     channel: str
-    table_name: str
+        name of the channel.
+    file: `path`
+        path to a panda readable hdf5 file.
+    key: str
+        name of the table of the hdf5 file. 
     ax: `matplotlib.pyplot.axes`
     kwargs: kwargs for `matplotlib.pyplot.plot`
 
@@ -97,18 +100,21 @@ def plot_sigmav_ULs_from_hdf5(file,
     
     return
 
-def plot_sigmav_CLbands_from_hdf5(file,
-                                channel,
-                                table_name='sigmavULs_Jnuisance',
+def plot_sigmav_CLbands_from_hdf5(channel,
+                                file,
+                                key='sigmavULs_Jnuisance',
                                 ax=None):
     """
     Plot the sigmav confidence limit bands from hdf5 file.
 
     Parameters
     ----------
-    file: `panda readable hdf5 file`
     channel: str
-    table_name: str
+        name of the channel.
+    file: `path`                   
+        path to a panda readable hdf5 file.
+    key: str
+        name of the table of the hdf5 file.
     ax: `matplotlib.pyplot.axes`
 
     Returns
