@@ -6,8 +6,7 @@ OS=$TRAVIS_OS_NAME-64
 mkdir ~/conda-bld
 conda config --set anaconda_upload no
 export CONDA_BLD_PATH=~/conda-bld
-LKLCOM_VERSION=`python -c "import likelihood_combiner; print(likelihood_combiner.__version__.split("+")[0]);"`
+export VERSION=`date +%Y.%m.%d`
 
-export VERSION=$LKLCOM_VERSION
 conda build .
-anaconda -t $CONDA_UPLOAD_TOKEN upload -u $USER -l nightly $CONDA_BLD_PATH/$OS/$PKG_NAME-$LKLCOM_VERSION-0.tar.bz2 --force
+anaconda -t $CONDA_UPLOAD_TOKEN upload -u $USER -l nightly $CONDA_BLD_PATH/$OS/$PKG_NAME-`date +%Y.%m.%d`-0.tar.bz2 --force
