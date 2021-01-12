@@ -8,3 +8,8 @@ Modules
     :show-inheritance:
 
 
+.. automodule:: likelihood_combiner.plotter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

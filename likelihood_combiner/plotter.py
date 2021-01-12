@@ -1,3 +1,9 @@
+"""
+plots.py
+========
+Functions to make DM plots
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,10 +20,12 @@ def plot_thermal_relic(ax=None, **kwargs):
     Plot the thermal relic, which was taken from Steigman G., Dasgupta B, and Beacom J. F.,
     Precise relic WIMP abundance and its impact onsearches for dark matter annihilation,
     Phys.Rev. D86(2012) 023506, [arXiv:1204.3622]
+
     Parameters
     ----------
     ax: `matplotlib.pyplot.axes`
     kwargs: kwargs for `matplotlib.pyplot.plot`
+
     Returns
     -------
     ax: `matplotlib.pyplot.axes`
@@ -59,13 +67,15 @@ def plot_sigmav_ULs_from_hdf5(file,
                             **kwargs):
     """
     Plot the sigmav upper limits from hdf5 file.
+
     Parameters
     ----------
     file: `panda readable hdf5 file`
-    channel: `string`
-    table_name: `string`
+    channel: str
+    table_name: str
     ax: `matplotlib.pyplot.axes`
     kwargs: kwargs for `matplotlib.pyplot.plot`
+
     Returns
     -------
     ax: `matplotlib.pyplot.axes`
@@ -93,12 +103,14 @@ def plot_sigmav_CLbands_from_hdf5(file,
                                 ax=None):
     """
     Plot the sigmav confidence limit bands from hdf5 file.
+
     Parameters
     ----------
     file: `panda readable hdf5 file`
-    channel: `string`
-    table_name: `string`
+    channel: str
+    table_name: str
     ax: `matplotlib.pyplot.axes`
+
     Returns
     -------
     ax: `matplotlib.pyplot.axes`
