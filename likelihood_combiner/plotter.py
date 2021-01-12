@@ -1,5 +1,5 @@
 """
-plots.py
+plotter.py
 ========
 Functions to make DM plots
 """

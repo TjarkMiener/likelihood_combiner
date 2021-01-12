@@ -1,7 +1,7 @@
 """
 io.py
 =====
-Functions to translate between dataformats
+Functions to translate between data formats
 """
 
 import tables
