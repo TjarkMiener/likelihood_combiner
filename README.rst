@@ -1,6 +1,6 @@
 
 LlkCom: Combining likelihoods from different experiments.
-=====================================================================
+=========================================================
 
 
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4430902.svg
@@ -61,7 +61,7 @@ Clone the LikelihoodCombiner repository:
    git clone https://github.com/TjarkMiener/likelihood_combiner
 
 Install Package with Anaconda/pypi
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Next, download and install `Anaconda <https://www.anaconda.com/download/>`_\ , or, for a minimal installation, `Miniconda <https://conda.io/miniconda.html>`_. Create a new conda environment that includes all the dependencies for LikelihoodCombiner:
 
