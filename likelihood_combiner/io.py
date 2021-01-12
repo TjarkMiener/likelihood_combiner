@@ -1,3 +1,9 @@
+"""
+io.py
+=====
+Functions to translate between dataformats
+"""
+
 import tables
 import numpy as np
 import os
@@ -18,42 +24,30 @@ def write_to_lklcom(collaboration,
                     mode="a",
                     simulation=-1):
     """
-    Write/append a given likelihood table into lklcom hdf5 file.
+    Write/append a given likelihood table into lklcom hdf5 file. lkl_dict is a dictionary
+    with the DM mass as keys (str) and likelihood or ts values (ascending) as values
+    (`numpy.ndarray of type numpy.float32`).
+
     Parameters
     ----------
-    collaboration: `string`
+    collaboration: str
         name of the collaboration.
-    source: `string`
+    source: str
         name of the source.
-    channel: `string`
+    channel: str
         name of the channel.
     logJ: `numpy.float32`
         value of the log J-Factor.
     sigmav_range: `numpy.ndarray of type numpy.float32`
         sigmav range (ascending).
-    lkl_dict: `dict`
-        dictionary with items:
-            keys: `string`
-                DM mass.
-            values: `numpy.ndarray of type numpy.float32`
-                likelihood or ts values (ascending).
-    output_file: `string`
+    lkl_dict: dict
+        likelihood dictionary.
+    output_file: str
         path to the lklcom hdf5 file.
-    mode: `string`
+    mode: str
         mode to open the lklcom hdf5 file.
-        Valid (recommended) option:
-            "w": Write; a new file is created (an existing file
-                with the same name would be deleted).
-            "a": Append; an existing file is opened for reading and
-                writing, and if the file does not exist it is created.
-            "r+": It is similar to ‘a’, but the file must already exist.
-        Default: "a"
-    simulation: `int`
+    simulation: int
         number of the simulation.
-        Default: -1 (= data sample)
-    Returns
-    -------
-    
     """
 
     # Opening the hdf5 file.
@@ -105,24 +99,15 @@ def gLike_to_lklcom(input_dir,
                     mode="w"):
     """
     Translate gLike txt files into lklcom hdf5 file.
+
     Parameters
     ----------
-    input_dir: `string`
+    input_dir: str
         path to the input directory, which holds txt files in gLike format.
-    output_file: `string`
+    output_file: str
         path to the lklcom hdf5 file.
-    mode: `string`
+    mode: str
         mode to open the lklcom hdf5 file.
-        Valid (recommended) option:
-            "w": Write; a new file is created (an existing file
-                with the same name would be deleted).
-            "a": Append; an existing file is opened for reading and
-                writing, and if the file does not exist it is created.
-            "r+": It is similar to "a", but the file must already exist.
-        Default: "w"
-    Returns
-    -------
-    
     """
     
     # Deleting the output file, when the mode "w" (write) is selected.
@@ -184,18 +169,15 @@ def lklcom_to_gLike(input_file,
                     reduce=True):
     """
     Translate the lklcom hdf5 file into gLike txt files.
+
     Parameters
     ----------
-    input_file: `string`
+    input_file: str
         path to the lklcom hdf5 input file.
-    output_dir: `string`
+    output_dir: str
         path to the output directory.
-    reduce: `boolean`
+    reduce: bool
         flag, if the txt files should be reduced/compressed.
-        Default: True
-    Returns
-    -------
-
     """
 
     # Opening the hdf5 file.
