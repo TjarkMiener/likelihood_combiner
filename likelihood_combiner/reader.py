@@ -1,3 +1,7 @@
+"""
+Collection of classes to read likelihood or ts tables.
+"""
+
 import numpy as np
 from scipy.interpolate import interp1d
 import tables
@@ -11,6 +15,9 @@ __all__ = [
 ]
 
 class LklCom:
+    """
+    Abstract class for reading likelihood or ts tables.
+    """
 
     def __init__(self,
                  channel,
@@ -19,6 +26,20 @@ class LklCom:
                  simulations=None,
                  sigmav_precision=3,
                  ):
+        """
+        Parameters
+        ----------
+        channel: str
+            name of the channel.
+        LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
+            class of the lklcom to handle the J-Factor. 
+        combination_data : path
+            path to the dataset, which will be used in the combination.
+        simulations: `list of int`
+            list of simulations, which will be used in the combination (only for subclass LklCom_custom).
+        sigmav_precision: int
+            presicion of the returning sigmav range.
+        """
 
         self.channel = channel
         self.LklCom_jfactor_class = LklCom_jfactor_class
@@ -60,6 +81,9 @@ class LklCom:
         return combination_info
 
 class LklCom_hdf5(LklCom):
+    """
+    Subclass to read likelihood or ts tables from the lklcom hdf5 file.
+    """
 
     def __init__(self,
                 channel,
@@ -67,6 +91,19 @@ class LklCom_hdf5(LklCom):
                 combination_data=None,
                 sigmav_precision=3
                 ):
+        """
+        Parameters
+        ----------
+        channel: str
+            name of the channel.
+        LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
+            class of the lklcom to handle the J-Factor.
+        combination_data : path
+            path to the dataset, which will be used in the combination.
+        sigmav_precision: int
+            presicion of the returning sigmav range.
+        """
+
         super().__init__(channel, LklCom_jfactor_class, combination_data, sigmav_precision=3)
         
         self.channel = channel
@@ -78,14 +115,16 @@ class LklCom_hdf5(LklCom):
         self.combination_data = combination_data
         self.sigmav_precision = sigmav_precision
 
-    def read_tstables(self, simulation=0):
+    def __call__(self, simulation=0):
         """
         Read the likelihood or tstables from the lklcom hdf5 file.
+
         Parameters
         ----------
         simulation: `int`
             number of the simulation.
             Default: -1 (= data sample)
+
         Returns
         -------
         tstables: `dict`
@@ -142,6 +181,9 @@ class LklCom_hdf5(LklCom):
         return tstables
 
 class LklCom_txtdir(LklCom):
+    """
+    Subclass to read likelihood or ts tables from the gLike txt files.
+    """
 
     def __init__(self,
                 channel,
@@ -149,6 +191,18 @@ class LklCom_txtdir(LklCom):
                 combination_data=None,
                 sigmav_precision=3
                 ):
+        """
+        Parameters
+        ----------
+        channel: str
+            name of the channel.
+        LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
+            class of the lklcom to handle the J-Factor.
+        combination_data : path
+            path to the dataset, which will be used in the combination.
+        sigmav_precision: int
+            presicion of the returning sigmav range.
+        """
         super().__init__(channel, LklCom_jfactor_class, combination_data, sigmav_precision=3)
             
         self.channel = channel
@@ -160,14 +214,16 @@ class LklCom_txtdir(LklCom):
         self.combination_data = combination_data
         self.sigmav_precision = sigmav_precision
             
-    def read_tstables(self, simulation=0):
+    def __call__(self, simulation=0):
         """
         Read the likelihood or tstables from the gLike txt files.
+
         Parameters
         ----------
         simulation: `int`
             number of the simulation.
             Default: -1 (= data sample)
+
         Returns
         -------
         tstables: `dict`
@@ -222,6 +278,9 @@ class LklCom_txtdir(LklCom):
 
 
 class LklCom_custom(LklCom):
+    """
+    Subclass to read likelihood or ts tables from the custom tstables dict. Only recommended to use for by passing lklcom or gLike data formats. 
+    """
 
     def __init__(self,
                 channel,
@@ -230,6 +289,20 @@ class LklCom_custom(LklCom):
                 simulations,
                 sigmav_precision=3
                 ):
+        """
+        Parameters
+        ----------
+        channel: str
+            name of the channel.
+        LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
+            class of the lklcom to handle the J-Factor.
+        combination_data : path
+            path to the dataset, which will be used in the combination.
+        simulations: `list of int`
+            list of simulations, which will be used in the combination (only for subclass LklCom_custom).
+        sigmav_precision: int
+            presicion of the returning sigmav range.
+        """
         super().__init__(channel, LklCom_jfactor_class, combination_data, simulations, sigmav_precision=3)
     
         self.channel = channel
@@ -242,14 +315,16 @@ class LklCom_custom(LklCom):
             self.tstables[simulation] = combination_data[simulation]
         self.sigmav_precision = sigmav_precision
 
-    def read_tstables(self, simulation=0):
+    def __call__(self, simulation=0):
         """
         Read the likelihood or tstables from the custom tstables dict.
+
         Parameters
         ----------
         simulation: `int`
             number of the simulation.
             Default: -1 (= data sample)
+
         Returns
         -------
         tstables: `dict`

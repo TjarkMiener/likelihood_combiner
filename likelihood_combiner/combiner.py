@@ -33,7 +33,7 @@ def combiner(sigmav_range,
     sigmav_range: `numpy.ndarray of type numpy.float32`
         sigmav range (ascending).
     LklCom_reader_class: `likelihood_combiner.reader.LklCom`
-        likelihood data as dictionary with the DM mass as keys (str) and likelihood or ts values (ascending) as values (`numpy.ndarray of type numpy.float32`).
+        class of the lklcom to handle the reading of the likelihood or ts tables.        
     output: path
         path to the lklcom results directory or hdf5 file.
     sigmavULs: `multiprocessing.managers.DictProxy`
@@ -55,7 +55,7 @@ def combiner(sigmav_range,
     
     for simulation in simulations:
     
-        tstables = LklCom_reader_class.read_tstables(simulation)
+        tstables = LklCom_reader_class(simulation)
         
         combined_ts, combined_ts_Jnuisance = {}, {}
         total_masses = []
