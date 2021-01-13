@@ -1,4 +1,6 @@
 """
+reader.py
+=========
 Collection of classes to read likelihood or ts tables.
 """
 

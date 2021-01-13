@@ -1,3 +1,9 @@
+"""
+jfactor.py
+==========
+Collection of classes to handle the J-Fator.
+"""
+
 import numpy as np
 from scipy.interpolate import interp1d
 import tables
@@ -11,6 +17,9 @@ __all__ = [
 ]
 
 class JFactor:
+    """
+    Abstract class for handling the J-Factor.
+    """
 
     def __init__(self,
                 sources=None,
@@ -22,6 +31,28 @@ class JFactor:
                 DlogJ=None,
                 jnuisance=True
                 ):
+        """
+        Parameters
+        ----------
+        sources: `list of str`
+            list of the sources.
+        collaborations: dict
+            settings of the collaborations, following the skeleton: {'name of collaboration' : angular cut `float`}
+        resource : path
+            path to any file, which might be needed.
+        combination_data : path
+            path to the dataset, which will be used in the combination.
+        precision: int
+            presicion of the J-Factor and it's uncertainty.
+        logJ: dict
+            custom dictionary holding the hardcoded log J-Factor to by-pass the build-in J-Factor sets, following the skeleton:
+            {'name of the source': {'name of collaboration' : logJ value `float`}}
+        DlogJ: dict
+            custom dictionary holding the hardcoded log J-Factor uncertainties to by-pass the build-in J-Factor sets, following the skeleton:
+            {'name of the source': {'name of collaboration' : DlogJ value `float`}} 
+        jnuisance: bool
+            boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
+        """
     
         self.sources = sources
         self.collaborations = collaborations
@@ -165,6 +196,9 @@ class JFactor:
         return combination_info
 
 class Bonnivard(JFactor):
+    """
+    Jfactor class for handling the J-Factor set from Bonnivard et al. (https://arxiv.org/abs/1504.02048).
+    """
 
     def __init__(self,
                 sources,
@@ -173,6 +207,23 @@ class Bonnivard(JFactor):
                 combination_data=None,
                 precision=2,
                 jnuisance=True):
+                """
+        Parameters
+        ----------
+        sources: `list of str`
+            list of the sources.
+        collaborations: dict
+            settings of the collaborations, following the skeleton: {'name of collaboration' : angular cut `float`}
+        resource : path
+            path to any file, which might be needed.
+        combination_data : path
+            path to the dataset, which will be used in the combination.
+        precision: int
+            presicion of the J-Factor and it's uncertainty.
+        jnuisance: bool
+            boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
+        """
+
         super().__init__(sources, collaborations, resource, combination_data, precision=2, jnuisance=True)
         
         if resource is None:
@@ -205,11 +256,27 @@ class Bonnivard(JFactor):
         return angular_separations, logJ_profiles, DlogJ_profiles
         
 class Custom(JFactor):
+    """
+    Custom class to hardcode the J-Factors and it's uncertainties.
+    """   
 
     def __init__(self,
                 logJ,
                 DlogJ,
                 jnuisance=True):
+                """
+        Parameters
+        ----------
+        logJ: dict
+            custom dictionary holding the hardcoded log J-Factor to by-pass the build-in J-Factor sets, following the skeleton:
+            {'name of the source': {'name of collaboration' : logJ value `float`}}
+        DlogJ: dict
+            custom dictionary holding the hardcoded log J-Factor uncertainties to by-pass the build-in J-Factor sets, following the skeleton:
+            {'name of the source': {'name of collaboration' : DlogJ value `float`}}
+        jnuisance: bool
+            boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
+        """
+
         super().__init__(logJ, DlogJ, jnuisance=True)
         
         # The arguments logJ and DlogJ should be only used to hardcode the log J-factor
@@ -223,6 +290,9 @@ class Custom(JFactor):
             self.DlogJ_comb = super()._compute_DlogJ_for_combination()
 
 class GeringerSameth(JFactor):
+    """
+    Jfactor class for handling the J-Factor set from Geringer-Sameth et al. (https://arxiv.org/abs/1408.0002).
+    """
 
     def __init__(self,
                 sources,
@@ -231,6 +301,23 @@ class GeringerSameth(JFactor):
                 combination_data=None,
                 precision=2,
                 jnuisance=True):
+        """
+        Parameters
+        ----------
+        sources: `list of str`
+            list of the sources.
+        collaborations: dict
+            settings of the collaborations, following the skeleton: {'name of collaboration' : angular cut `float`}
+        resource : path
+            path to any file, which might be needed.
+        combination_data : path
+            path to the dataset, which will be used in the combination.
+        precision: int
+            presicion of the J-Factor and it's uncertainty.
+        jnuisance: bool
+            boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
+        """
+
         super().__init__(sources, collaborations, resource=None, combination_data=None, precision=2, jnuisance=True)
         
         if resource is None:

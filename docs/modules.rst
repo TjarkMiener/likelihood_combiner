@@ -9,14 +9,15 @@ Core Modules
 .. autoclass:: likelihood_combiner.reader.LklCom
     :members:
     :undoc-members:
-    :show-inheritance:
+    :show-inheritance: likelihood_combiner.reader.LklCom_hdf5, likelihood_combiner.reader.LklCom_txtdir, likelihood_combiner.reader.LklCom_custom
     :inherited-members:
 
 .. autoclass:: likelihood_combiner.jfactor.JFactor
     :members:
     :undoc-members:
-    :show-inheritance:
+    :show-inheritance: likelihood_combiner.jfactor.Bonnivard, likelihood_combiner.jfactor.GeringerSameth, likelihood_combiner.jfactor.Custom
     :inherited-members:
+
 
 Modules
 =======

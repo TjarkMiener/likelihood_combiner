@@ -7,20 +7,16 @@ LlkCom: Combining likelihoods from different experiments.
    :target: https://doi.org/10.5281/zenodo.4430902
    :alt: DOI
 
-
 .. image:: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
    :target: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
-
 
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/version.svg
    :target: https://anaconda.org/tmiener/likelihood_combiner
    :alt: Anaconda-Server Badge
 
-
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/platforms.svg
    :target: https://anaconda.org/tmiener/likelihood_combiner
    :alt: Anaconda-Server Badge
-
 
 .. image:: https://img.shields.io/pypi/v/lklcom
     :target: https://pypi.org/project/lklcom/
@@ -30,16 +26,13 @@ LlkCom: Combining likelihoods from different experiments.
     :target: https://lklcom.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/license.svg
    :target: https://anaconda.org/tmiener/likelihood_combiner
    :alt: Anaconda-Server Badge
 
-
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/installer/conda.svg
    :target: https://conda.anaconda.org/tmiener
    :alt: Anaconda-Server Badge
-
 
 .. figure::  https://github.com/TjarkMiener/likelihood_combiner/blob/master/images/Gloryduck_logo.png
    :alt: Gloryduck logo

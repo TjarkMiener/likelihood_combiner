@@ -10,5 +10,4 @@ Welcome to lklcom's documentation!
    :maxdepth: 2
 
    README
-   license
    modules

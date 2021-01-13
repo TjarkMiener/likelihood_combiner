@@ -1,6 +1,6 @@
 """
 combiner.py
-=====
+===========
 Function to combine data read by a LklCom reader class
 """
 

@@ -1,6 +1,6 @@
 """
 cluster.py
-=====
+==========
 Helper function to run LklCom on a cluster/coomputing farm
 """
 

@@ -1,6 +1,6 @@
 """
 plotter.py
-========
+==========
 Functions to make DM plots
 """
 

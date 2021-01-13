@@ -1,6 +1,6 @@
 """
 local.py
-=====
+========
 Function to automatically set up multiprocessing (only Linux supported)
 """
 
