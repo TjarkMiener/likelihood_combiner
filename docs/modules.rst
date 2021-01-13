@@ -6,17 +6,36 @@ Core Modules
     :undoc-members:
     :show-inheritance:
 
+
+
 .. autoclass:: likelihood_combiner.reader.LklCom
     :members:
-    :undoc-members:
-    :show-inheritance: likelihood_combiner.reader.LklCom_hdf5, likelihood_combiner.reader.LklCom_txtdir, likelihood_combiner.reader.LklCom_custom
-    :inherited-members:
+
+.. autoclass:: likelihood_combiner.reader.LklCom_hdf5
+   :members:
+
+.. autoclass:: likelihood_combiner.reader.LklCom_txtdir
+   :members:
+
+.. autoclass:: likelihood_combiner.reader.LklCom_custom
+   :members:
+
+
+
 
 .. autoclass:: likelihood_combiner.jfactor.JFactor
     :members:
-    :undoc-members:
-    :show-inheritance: likelihood_combiner.jfactor.Bonnivard, likelihood_combiner.jfactor.GeringerSameth, likelihood_combiner.jfactor.Custom
-    :inherited-members:
+
+.. autoclass:: likelihood_combiner.jfactor.Bonnivard
+    :members:
+
+.. autoclass:: likelihood_combiner.jfactor.GeringerSameth
+    :members:
+
+.. autoclass:: likelihood_combiner.jfactor.Custom
+    :members:
+
+
 
 
 Modules
