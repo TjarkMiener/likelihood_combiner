@@ -7,11 +7,13 @@ Functions to translate between data formats
 import tables
 import numpy as np
 import os
+import pandas as pd
 
 __all__ = [
     'write_to_lklcom',
     'gLike_to_lklcom',
-    'lklcom_to_gLike'
+    'lklcom_to_gLike',
+    'gLikeLimits_to_lklcomLimits'
 ]
 
 def write_to_lklcom(collaboration,
@@ -261,4 +263,48 @@ def lklcom_to_gLike(input_file,
         
     # Closing hdf5 file.
     h5.close()
+    return
+
+
+def gLikeLimits_to_lklcomLimits(input_dir,
+                                output_file):
+    """
+    Translate gLike limits in txt files into lklcom results hdf5 file.
+
+    Parameters
+    ----------
+    input_dir: str
+        path to the input directory, which holds txt files of the results of gLike or any other framework.
+    output_file: str
+        path to the lklcom results hdf5 file.
+    """
+
+    # Getting the txt files of the input directory.
+    files = np.array([x for x in os.listdir(input_dir) if x.endswith(".txt")])
+    # Looping over the files and store the likelihood or ts tables into the lklcom hdf5 file.
+    svUL = {}
+    for counter, file in enumerate(files):
+
+        # Parsing the file name.
+        file_info = file.replace('.txt','').split("_")
+        # Getting the number of the simulation.
+        simulation=-1
+        if len(file_info) == 3:
+            simulation=file_info[2]
+
+        # Opening the txt file.
+        txt_file = open("{}/{}".format(input_dir, file), "r")
+
+        # Going through the table in the txt file and storing the entries in a 2D array.
+        table = np.array([[i for i in line.split()] for line in txt_file], dtype=np.float32)
+
+        # Dumping the upper limits in the h5 file
+        svUL['masses'] = table[0]
+        col_name = "data"
+        if simulation != -1:
+            col_name = "simu_{}".format(simulation)
+        svUL[col_name] = table[1]
+
+    pd.DataFrame(data=svUL).to_hdf(output_file, key='{}/{}'.format(file_info[0], file_info[1]), mode="a")
+
     return
