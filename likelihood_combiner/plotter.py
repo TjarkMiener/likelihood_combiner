@@ -12,6 +12,7 @@ __all__ = [
     'plot_thermal_relic',
     'plot_sigmav_ULs_from_hdf5',
     'plot_sigmav_CLbands_from_hdf5',
+    'plot_sigmav_CLbands_as_lines_from_hdf5'
 ]
 
 
@@ -93,7 +94,7 @@ def plot_sigmav_ULs_from_hdf5(channel,
     ax.set_yscale('log')
     ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
     
-    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, table_name))
+    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key))
     masses = np.squeeze(sigmavULs[['masses']].to_numpy())
     data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
     
@@ -131,7 +132,7 @@ def plot_sigmav_CLbands_from_hdf5(channel,
     ax.set_yscale('log')
     ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
 
-    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, table_name))
+    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key))
     masses = np.squeeze(sigmavULs[['masses']].to_numpy())
     simulations = len(sigmavULs.columns)-2
     # Calculate the median (null hypothesis)
@@ -142,14 +143,67 @@ def plot_sigmav_CLbands_from_hdf5(channel,
     sv_minus1 = np.percentile(simu_tab, 15.87, axis=1)
     sv_minus2 = np.percentile(simu_tab, 2.275, axis=1)
 
-    ax.plot(masses, null_hypothesis, label=r'$ H_{0} $ median', c='k',linewidth=0.75, linestyle='--')
+    ax.plot(masses, null_hypothesis, label=r'$ H_{0} $ median', c='k', linewidth=0.75, linestyle='--')
     ax.fill_between(masses,sv_plus1,sv_minus1, color='green', alpha=0.5, linewidth=0)
     ax.fill_between(masses,sv_plus1,sv_plus2, color='yellow', alpha=0.5, linewidth=0)
     ax.fill_between(masses,sv_minus1,sv_minus2, color='yellow', alpha=0.5, linewidth=0)
 
     # Creating dummy data, which is needed for beautiful legend
     dummy_val = np.ones(len(masses))*1e-32
-    ax.plot(masses,dummy_val,label='$ H_{0} \, 68\% $ containment',c='green', alpha=0.5, linewidth=6)
-    ax.plot(masses,dummy_val,label=r'$ H_{0} \, 95\% $ containment',c='yellow', alpha=0.5, linewidth=6)
+    ax.plot(masses,dummy_val,label='$ H_{0} \, 68\% $ containment', c='green', alpha=0.5, linewidth=6)
+    ax.plot(masses,dummy_val,label=r'$ H_{0} \, 95\% $ containment', c='yellow', alpha=0.5, linewidth=6)
+
+    return ax
+
+
+
+def plot_sigmav_CLbands_as_lines_from_hdf5(channel,
+                                                file,
+                                                key='sigmavULs_Jnuisance',
+                                                ax=None,
+                                                **kwargs):
+    """
+    Plot the sigmav confidence limit bands as lines from hdf5 file.
+
+    Parameters
+    ----------
+    channel: str
+        name of the channel.
+    file: `path`
+        path to a panda readable hdf5 file.
+    key: str
+        name of the table of the hdf5 file.
+    ax: `matplotlib.pyplot.axes`
+    kwargs: kwargs for `matplotlib.pyplot.plot`
+
+    Returns
+    -------
+    ax: `matplotlib.pyplot.axes`
+    """
+
+    ax = plt.gca() if ax is None else ax
+
+    ax.set_xscale('log')
+    ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+
+    ax.set_yscale('log')
+    ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
+
+    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key))
+    masses = np.squeeze(sigmavULs[['masses']].to_numpy())
+    simulations = len(sigmavULs.columns)-2
+    # Calculate the median (null hypothesis)
+    simu_tab = sigmavULs.drop(['data','masses'], axis=1).to_numpy()
+    null_hypothesis = np.median(simu_tab, axis=1)
+    sv_plus1 = np.percentile(simu_tab, 84.14, axis=1)
+    sv_plus2 = np.percentile(simu_tab, 97.725, axis=1)
+    sv_minus1 = np.percentile(simu_tab, 15.87, axis=1)
+    sv_minus2 = np.percentile(simu_tab, 2.275, axis=1)
+
+    ax.plot(masses, null_hypothesis, label=r'$ H_{0} $ median', **kwargs)
+    ax.plot(masses, sv_plus1, label=r'sv_plus1', **kwargs)
+    ax.plot(masses, sv_plus2, label=r'sv_plus2', **kwargs)
+    ax.plot(masses, sv_minus1, label=r'sv_minus1', **kwargs)
+    ax.plot(masses, sv_minus2, label=r'sv_minus2', **kwargs)
 
     return ax
