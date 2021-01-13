@@ -1,3 +1,9 @@
+"""
+cluster.py
+=====
+Helper function to run LklCom on a cluster/coomputing farm
+"""
+
 import argparse
 import yaml
 import os
@@ -16,22 +22,22 @@ def run_cluster(settings,
         output=None,
         simulation=0):
     """
+    Run LklCom on a cluster/coomputing farm.
+
     Parameters
     ----------
-    settings: dictionary with entries:
-        'Data' : {'buildin_j_factors': `string`, 'j_nuisance': `boolean`, 'simulations': `int`}
-        'Configuration' : {'channels': `numpy.ndarray of type string`, 'sources': `numpy.ndarray of type string`, 'collaborations': `dictionary`}
+    settings: dict
+        settings of the combination, following the minimum skeleton (see example config file for more documentation):
+        {'Data' : {'buildin_j_factors': `string`, 'j_nuisance': `boolean`, 'simulations': `int`},
+        'Configuration' : {'channels': `numpy.ndarray of type string`, 'sources': `numpy.ndarray of type string`, 'collaborations': `dictionary`}}
     channel: `string`
-        name of the channel
+        name of the channel.
     input: `string`
-        path to the input file or directory
+        path to the input file or directory.
     output: `string`
-        path to the output directory
+        path to the output directory.
     simulation: `int`
-        number of the simulation 
-    Returns
-    -------
-    
+        number of the simulation.
     """
     
     if input is None:

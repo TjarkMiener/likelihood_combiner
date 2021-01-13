@@ -19,7 +19,7 @@ def plot_thermal_relic(ax=None, **kwargs):
     """
     Plot the thermal relic, which was taken from Steigman G., Dasgupta B, and Beacom J. F.,
     Precise relic WIMP abundance and its impact onsearches for dark matter annihilation,
-    Phys.Rev. D86(2012) 023506, [arXiv:1204.3622]
+    Phys.Rev. D86(2012) 023506, [arXiv:1204.3622].
 
     Parameters
     ----------
@@ -30,6 +30,7 @@ def plot_thermal_relic(ax=None, **kwargs):
     -------
     ax: `matplotlib.pyplot.axes`
     """
+
     ax = plt.gca() if ax is None else ax
 
     ax.set_xscale('log')

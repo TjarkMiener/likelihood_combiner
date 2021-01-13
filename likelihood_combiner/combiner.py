@@ -1,3 +1,9 @@
+"""
+combiner.py
+=====
+Function to combine data read by a LklCom reader class
+"""
+
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
@@ -19,6 +25,28 @@ def combiner(sigmav_range,
             simulation_counter=None,
             total_number_of_simulation=None,
             simulations=[0]):
+    """
+    Combine data read by one of the LklCom reader class for a given sigmav range.
+
+    Parameters
+    ----------
+    sigmav_range: `numpy.ndarray of type numpy.float32`
+        sigmav range (ascending).
+    LklCom_reader_class: `likelihood_combiner.reader.LklCom`
+        likelihood data as dictionary with the DM mass as keys (str) and likelihood or ts values (ascending) as values (`numpy.ndarray of type numpy.float32`).
+    output: path
+        path to the lklcom results directory or hdf5 file.
+    sigmavULs: `multiprocessing.managers.DictProxy`
+        shared multiprocessing dict of the sigmav upper limits.
+    sigmavULs_Jnuisance: `multiprocessing.managers.DictProxy`
+        shared multiprocessing dict of the sigmav upper limits including the J-Factors as a nuisance parameter.
+    simulation_counter: `multiprocessing.Manager.Value`
+        current status of the simulation progress (needed for the progress bar with multiprocessing).
+    total_number_of_simulation: int
+        total number of the simulation considered (needed for the progress bar with multiprocessing).
+    simulations: `list of type int`
+        list of the numbers of the simulations.
+    """
             
     channel = LklCom_reader_class.get_channel()
     LklCom_jfactor_class = LklCom_reader_class.get_LklCom_jfactor_class()

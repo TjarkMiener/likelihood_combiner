@@ -24,6 +24,7 @@ def run_local_on_linux(settings,
                        input,
                        output):
     """
+    Run LklCom on a local linux machine. Support multiprocessing.
     This function only works for linux users, because MacOS or Windows don't allow you to set up multiprocessing this way.
     See: https://www.pythonforthelab.com/blog/differences-between-multiprocessing-windows-and-linux/  
 
