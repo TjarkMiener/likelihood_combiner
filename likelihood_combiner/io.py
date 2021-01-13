@@ -13,7 +13,8 @@ __all__ = [
     'write_to_lklcom',
     'gLike_to_lklcom',
     'lklcom_to_gLike',
-    'gLikeLimits_to_lklcomLimits'
+    'gLikeLimits_to_lklcomLimits',
+    'merge_to_lklcom'
 ]
 
 def write_to_lklcom(collaboration,
@@ -44,7 +45,7 @@ def write_to_lklcom(collaboration,
         sigmav range (ascending).
     lkl_dict: dict
         likelihood data as dictionary with the DM mass as keys (str) and likelihood or ts values (ascending) as values (`numpy.ndarray of type numpy.float32`).
-    output_file: str
+    output_file: path
         path to the lklcom hdf5 file.
     mode: str
         mode to open the lklcom hdf5 file.
@@ -104,9 +105,9 @@ def gLike_to_lklcom(input_dir,
 
     Parameters
     ----------
-    input_dir: str
+    input_dir: path
         path to the input directory, which holds txt files in gLike format.
-    output_file: str
+    output_file: path
         path to the lklcom hdf5 file.
     mode: str
         mode to open the lklcom hdf5 file.
@@ -174,9 +175,9 @@ def lklcom_to_gLike(input_file,
 
     Parameters
     ----------
-    input_file: str
+    input_file: path
         path to the lklcom hdf5 input file.
-    output_dir: str
+    output_dir: path
         path to the output directory.
     reduce: bool
         flag, if the txt files should be reduced/compressed.
@@ -273,9 +274,9 @@ def gLikeLimits_to_lklcomLimits(input_dir,
 
     Parameters
     ----------
-    input_dir: str
+    input_dir: path
         path to the input directory, which holds txt files of the results of gLike or any other framework.
-    output_file: str
+    output_file: path
         path to the lklcom results hdf5 file.
     """
 
@@ -283,8 +284,7 @@ def gLikeLimits_to_lklcomLimits(input_dir,
     files = np.array([x for x in os.listdir(input_dir) if x.endswith(".txt")])
     # Looping over the files and store the likelihood or ts tables into the lklcom hdf5 file.
     svUL = {}
-    for counter, file in enumerate(files):
-
+    for file in files:
         # Parsing the file name.
         file_info = file.replace('.txt','').split("_")
         # Getting the number of the simulation.
@@ -307,4 +307,44 @@ def gLikeLimits_to_lklcomLimits(input_dir,
 
     pd.DataFrame(data=svUL).to_hdf(output_file, key='{}/{}'.format(file_info[0], file_info[1]), mode="a")
 
+    return
+
+def merge_to_lklcom(input_dir,
+                    output_file):
+    """
+    Merge single lklcom hdf5 file produced by the cluster to the lklcom results hdf5 file.
+
+    Parameters
+    ----------
+    input_dir: path
+        path to the input directory, which holds txt files of the results of gLike or any other framework.
+    output_file: path
+        path to the lklcom results hdf5 file.
+    """
+
+    # Getting the h5 files of the input directory.
+    files = np.array([x for x in os.listdir(input_dir) if x.endswith(".h5") or x.endswith(".hdf5")])
+    
+    j_nuisance = False
+    svUL, svUL_Jnuisance = {}, {}
+    for file in files:
+        # Parsing the file name.
+        file_info = file.replace('.hdf5','').replace('.h5','').split("_")
+
+        # Opening the hdf5 file and reading the data
+        data = pd.HDFStore("{}/{}".format(input_dir, file), 'r')
+
+        if '/masses' in data.keys():
+            svUL['masses'] = svUL_Jnuisance['masses'] = data['masses'][0]
+        if '/sigmavULs' in data.keys():
+            svUL[file_info[1]] = data['sigmavULs'][0]
+        if '/sigmavULs_Jnuisance' in data.keys():
+            j_nuisance = True
+            svUL_Jnuisance[file_info[1]] = data['sigmavULs_Jnuisance'][0]
+
+    # Write the panda DataFrames into the hdf5 file
+    pd.DataFrame(data=svUL).to_hdf(output_file, key='{}/sigmavULs'.format(file_info[0]), mode='a')
+    if j_nuisance:
+        pd.DataFrame(data=svUL_Jnuisance).to_hdf(output_file, key='{}/sigmavULs_Jnuisance'.format(file_info[0]), mode='a')
+       
     return
