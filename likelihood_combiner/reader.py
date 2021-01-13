@@ -26,8 +26,7 @@ class LklCom:
                  LklCom_jfactor_class,
                  combination_data=None,
                  simulations=None,
-                 sigmav_precision=3,
-                 ):
+                 sigmav_precision=3):
         """
         Parameters
         ----------
@@ -91,8 +90,7 @@ class LklCom_hdf5(LklCom):
                 channel,
                 LklCom_jfactor_class,
                 combination_data=None,
-                sigmav_precision=3
-                ):
+                sigmav_precision=3):
         """
         Parameters
         ----------
@@ -191,8 +189,7 @@ class LklCom_txtdir(LklCom):
                 channel,
                 LklCom_jfactor_class,
                 combination_data=None,
-                sigmav_precision=3
-                ):
+                sigmav_precision=3):
         """
         Parameters
         ----------
@@ -205,6 +202,7 @@ class LklCom_txtdir(LklCom):
         sigmav_precision: int
             presicion of the returning sigmav range.
         """
+
         super().__init__(channel, LklCom_jfactor_class, combination_data, sigmav_precision=3)
             
         self.channel = channel
@@ -289,8 +287,7 @@ class LklCom_custom(LklCom):
                 LklCom_jfactor_class,
                 combination_data,
                 simulations,
-                sigmav_precision=3
-                ):
+                sigmav_precision=3):
         """
         Parameters
         ----------
@@ -305,6 +302,7 @@ class LklCom_custom(LklCom):
         sigmav_precision: int
             presicion of the returning sigmav range.
         """
+
         super().__init__(channel, LklCom_jfactor_class, combination_data, simulations, sigmav_precision=3)
     
         self.channel = channel

@@ -29,8 +29,7 @@ class JFactor:
                 precision=2,
                 logJ=None,
                 DlogJ=None,
-                jnuisance=True
-                ):
+                jnuisance=True):
         """
         Parameters
         ----------
@@ -207,7 +206,7 @@ class Bonnivard(JFactor):
                 combination_data=None,
                 precision=2,
                 jnuisance=True):
-                """
+        """
         Parameters
         ----------
         sources: `list of str`
@@ -264,7 +263,7 @@ class Custom(JFactor):
                 logJ,
                 DlogJ,
                 jnuisance=True):
-                """
+        """
         Parameters
         ----------
         logJ: dict
