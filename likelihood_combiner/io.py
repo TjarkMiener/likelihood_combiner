@@ -244,6 +244,12 @@ def lklcom_to_gLike(input_file,
                                 gLike_file.write("{:.3e} ".format(value))
                             elif value > 1e-5:
                                 gLike_file.write("{:.2e} ".format(value))
+                            elif value < -1:
+                                gLike_file.write("{:.3f} ".format(value))
+                            elif value < -0.01:
+                                gLike_file.write("{:.3e} ".format(value))
+                            elif value < -1e-5:
+                                gLike_file.write("{:.2e} ".format(value))
                             else:
                                 gLike_file.write("0 ")
                     else:
