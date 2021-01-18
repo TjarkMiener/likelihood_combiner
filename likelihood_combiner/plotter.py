@@ -100,7 +100,7 @@ def plot_sigmav_ULs_from_hdf5(channel,
     
     ax.plot(masses, data, **kwargs)
     
-    return
+    return ax
 
 def plot_sigmav_CLbands_from_hdf5(channel,
                                 file,
