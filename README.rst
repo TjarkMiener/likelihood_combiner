@@ -15,7 +15,7 @@ LlkCom: Combining likelihoods from different experiments.
     :alt: Documentation Status
 
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/installer/conda.svg
-   :target: https://conda.anaconda.org/tmiener/likelihood_combiner/
+   :target: https://anaconda.org/tmiener/likelihood_combiner
    :alt: Anaconda-Server Badge
 
 .. image:: https://img.shields.io/pypi/v/lklcom
