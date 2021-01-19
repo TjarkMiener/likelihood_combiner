@@ -10,17 +10,17 @@ LlkCom: Combining likelihoods from different experiments.
 .. image:: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
    :target: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
 
+.. image:: https://readthedocs.org/projects/lklcom/badge/?version=latest
+    :target: https://lklcom.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/installer/conda.svg
-   :target: https://conda.anaconda.org/tmiener
+   :target: https://conda.anaconda.org/tmiener/likelihood_combiner/
    :alt: Anaconda-Server Badge
 
 .. image:: https://img.shields.io/pypi/v/lklcom
     :target: https://pypi.org/project/lklcom/
     :alt: Latest Release
-
-.. image:: https://readthedocs.org/projects/lklcom/badge/?version=latest
-    :target: https://lklcom.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
 
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/license.svg
    :target: https://anaconda.org/tmiener/likelihood_combiner
