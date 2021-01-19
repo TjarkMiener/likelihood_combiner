@@ -10,12 +10,8 @@ LlkCom: Combining likelihoods from different experiments.
 .. image:: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
    :target: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
 
-.. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/version.svg
-   :target: https://anaconda.org/tmiener/likelihood_combiner
-   :alt: Anaconda-Server Badge
-
-.. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/platforms.svg
-   :target: https://anaconda.org/tmiener/likelihood_combiner
+.. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/installer/conda.svg
+   :target: https://conda.anaconda.org/tmiener
    :alt: Anaconda-Server Badge
 
 .. image:: https://img.shields.io/pypi/v/lklcom
@@ -28,10 +24,6 @@ LlkCom: Combining likelihoods from different experiments.
 
 .. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/license.svg
    :target: https://anaconda.org/tmiener/likelihood_combiner
-   :alt: Anaconda-Server Badge
-
-.. image:: https://anaconda.org/tmiener/likelihood_combiner/badges/installer/conda.svg
-   :target: https://conda.anaconda.org/tmiener
    :alt: Anaconda-Server Badge
 
 .. figure::  https://github.com/TjarkMiener/likelihood_combiner/blob/master/images/Gloryduck_logo.png
@@ -113,12 +105,12 @@ Install the package:
 
 This should automatically install all dependencies (NOTE: this may take some time, as by default MKL is included as a dependency of NumPy and it is very large).
 
-If you want to import any functionality from LikelihoodCombiner into your own Python scripts, then you are all set. However, if you wish to make use of any of the scripts in likelihood_combiner/scripts (like {local/cluster}.py), you should also clone the repository locally and checkout the corresponding tag (i.e. for version v0.5.0):
+If you want to import any functionality from LikelihoodCombiner into your own Python scripts, then you are all set. However, if you wish to make use of any of the scripts in likelihood_combiner/scripts (like {local/cluster}.py), you should also clone the repository locally and checkout the corresponding tag (i.e. for version v0.5.2):
 
 .. code-block:: bash
 
    git clone https://github.com/TjarkMiener/likelihood_combiner
-   git checkout v0.5.0
+   git checkout v0.5.2
 
 LikelihoodCombiner should already have been installed in your environment by Conda, so no further installation steps (i.e. with setuptools or pip) are necessary and you should be able to run scripts/{local/cluster}.py directly.
 
