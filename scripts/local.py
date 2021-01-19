@@ -18,11 +18,9 @@ if __name__ == "__main__":
             help="path to YAML configuration file with combining options")
     parser.add_argument(
             '--input',
-            default=None,
             help="path to input file or directory")
     parser.add_argument(
             '--output',
-            default=None,
             help="path to output file or directory")
 
     args = parser.parse_args()
@@ -30,37 +28,16 @@ if __name__ == "__main__":
     with open(args.config_file, 'r') as config_file:
         config = yaml.safe_load(config_file)
     
-    try:
-        input = config['Data']['input']
-        if input is None:
-            raise KeyError
-    except KeyError:
-        input = os.path.abspath(os.path.join(os.path.dirname(__file__), "../input/mock_data.hdf5"))
-
-    try:
-        output_file = config['Output']['file']
-        if output_file is None:
-            raise KeyError
-    except KeyError:
-        output_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../output/lklcom.hdf5"))
-        
-    try:
-        output_dir = config['Output']['directory']
-        if output_dir is None:
-            raise KeyError
-    except KeyError:
-        output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../output/"))
-    
     # Initializing of the LklCom jfactor class
     if config['Data']['buildin_j_factors'] == "GeringerSameth":
         LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(sources=config['Configuration']['sources'],
                                                     collaborations=config['Configuration']['collaborations'],
-                                                    combination_data=input,
+                                                    combination_data=args.input,
                                                     jnuisance=config['Data']['j_nuisance'])
     elif config['Data']['buildin_j_factors'] == "Bonnivard":
         LklCom_jfactor_class = lklcom.jfactor.Bonnivard(sources=config['Configuration']['sources'],
                                                     collaborations=config['Configuration']['collaborations'],
-                                                    combination_data=input,
+                                                    combination_data=args.input,
                                                     jnuisance=config['Data']['j_nuisance'])
     else:
         LklCom_jfactor_class = lklcom.jfactor.Custom(logJ=config['Data']['custom_logJ'],
@@ -77,10 +54,10 @@ if __name__ == "__main__":
         print("\nChannel '{}'".format(channel))
         
         # Initializing of the LklCom reader class
-        if input.endswith(".h5") or input.endswith(".hdf5"):
+        if args.input.endswith(".h5") or args.input.endswith(".hdf5"):
             LklCom_reader_class = lklcom.reader.LklCom_hdf5(channel=channel,
                                                             LklCom_jfactor_class=LklCom_jfactor_class)
-        if os.path.isdir(input):
+        if os.path.isdir(args.input):
             LklCom_reader_class = lklcom.reader.LklCom_txtdir(channel=channel,
                                                             LklCom_jfactor_class=LklCom_jfactor_class)
         
@@ -102,7 +79,7 @@ if __name__ == "__main__":
         if simulations <= 1:
             combiner(sigmav_range=sigmav_range,
                     LklCom_reader_class=LklCom_reader_class,
-                    output=output_dir)
+                    output=args.output)
         else:
             # Create a multiprocessing.Manager dict to share memory between the parallel processes
             manager = Manager()
@@ -117,7 +94,7 @@ if __name__ == "__main__":
                 process = Process(target=combiner,
                                     args=(sigmav_range,
                                         LklCom_reader_class,
-                                        output_file,
+                                        args.output,
                                         sigmavULs,
                                         sigmavULs_Jnuisance,
                                         simulation_counter,
@@ -146,11 +123,11 @@ if __name__ == "__main__":
                 if channel in key: svUL[key.replace('{}_'.format(channel),'')] = value
             svUL = pd.DataFrame(data=svUL)
             # Write the panda DataFrames into the hdf5 file
-            svUL.to_hdf(output_file, key='{}/sigmavULs'.format(channel), mode='a')
+            svUL.to_hdf(args.output, key='{}/sigmavULs'.format(channel), mode='a')
             if config['Data']['j_nuisance']:
                 svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
                 for key, value in dict(sigmavULs_Jnuisance).items():
                     if channel in key: svUL_Jnuisance[key.replace('{}_'.format(channel),'')] = value
                 svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
                 # Write the panda DataFrames into the hdf5 file
-                svUL_Jnuisance.to_hdf(output_file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
+                svUL_Jnuisance.to_hdf(args.output, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
