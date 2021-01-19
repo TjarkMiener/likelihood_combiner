@@ -1,14 +1,43 @@
 package:
-  name: lklcom
-  version: {{ environ['VERSION'] }}
+  name: likelihood_combiner
+  version: "0.5.1"
 
 source:
   git_url: https://github.com/TjarkMiener/likelihood_combiner
+  git_rev: v0.5.1
 
 build:
-  script_env:
-   - VERSION
-   - CONDA_BLD_PATH
+  noarch: generic
+  number: 0
+
+requirements:
+  build:
+    - python>=3.9
+    - matplotlib
+    - numpy>=1.15.0
+    - scipy
+    - pandas
+    - pyyaml
+    - pytables
+  host:
+    - python>=3.9
+    - matplotlib
+    - numpy>=1.15.0
+    - scipy
+    - pandas
+    - pyyaml
+    - pytables
+  run:
+    - python>=3.9
+    - matplotlib
+    - numpy>=1.15.0
+    - scipy
+    - pandas
+    - pyyaml
+    - pytables
+  test:
+    imports:
+      - likelihood_combiner
 
 about:
   home: https://github.com/TjarkMiener/likelihood_combiner
