@@ -1,7 +1,7 @@
 """
 sensitivity.py
 ==============
-Function to compute the sensitivity and the upper limits
+Function to extract the upper limits and sensitivity.
 """
 
 import numpy as np
@@ -13,9 +13,7 @@ __all__ = [
 
 def compute_sensitivity(sigmav_range, ts_dict, confidence_level = 2.71):
     """
-    Run LklCom on a local linux machine. Support multiprocessing.
-    This function only works for linux users, because MacOS or Windows don't allow you to set up multiprocessing this way.
-    See: https://www.pythonforthelab.com/blog/differences-between-multiprocessing-windows-and-linux/
+    Extract the upper limits and sensitivity.
 
     Parameters
     ----------
@@ -25,6 +23,7 @@ def compute_sensitivity(sigmav_range, ts_dict, confidence_level = 2.71):
         likelihood data as dictionary with the DM mass as keys (`str`) and likelihood or ts values (ascending) as values (`numpy.ndarray of type numpy.float32`).
     confidence_level: float
         confidence level to extract the upper limit
+
     Returns
     -------
     limits: dict

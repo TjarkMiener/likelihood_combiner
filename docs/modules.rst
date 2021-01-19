@@ -56,6 +56,11 @@ Modules
     :undoc-members:
     :show-inheritance:
 
+.. automodule:: likelihood_combiner.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 .. automodule:: likelihood_combiner.local
     :members:
     :undoc-members:

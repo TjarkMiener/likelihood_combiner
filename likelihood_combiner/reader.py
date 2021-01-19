@@ -39,7 +39,7 @@ class LklCom:
         simulations: `list of int`
             list of simulations, which will be used in the combination (only for subclass LklCom_custom).
         sigmav_precision: int
-            presicion of the returning sigmav range.
+            precision of the returning sigmav range.
         """
 
         self.channel = channel
