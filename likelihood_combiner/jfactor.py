@@ -183,14 +183,15 @@ class JFactor:
                 for h5_groups in h5.walk_groups("/"):
                     for table in h5.list_nodes(h5_groups, classname='Table'):
                         table_info = table._v_pathname.split("/")
-                        if (table_info[2], table_info[1]) not in combination_info:
+                        if (table_info[2], table_info[1]) not in combination_info and str(table_info[2]) in self.sources:
                             combination_info.append((table_info[2], table_info[1]))
+                    
             if os.path.isdir(self.combination_data):
                 # Writing only valid combinations from the lklcom hdf5 file.
                 txt_files = np.array([x for x in os.listdir(self.combination_data) if x.endswith(".txt")])
                 for txt_file in txt_files:
                     file_info = txt_file.replace('.txt','').split("_")
-                    if (file_info[1], file_info[2]) not in combination_info:
+                    if (file_info[1], file_info[2]) not in combination_info and file_info[1] in self.sources:
                         combination_info.append((file_info[1], file_info[2]))
         return combination_info
 
@@ -223,7 +224,7 @@ class Bonnivard(JFactor):
             boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
         """
 
-        super().__init__(sources, collaborations, resource, combination_data, precision=2, jnuisance=True)
+        super().__init__(sources=sources, collaborations=collaborations, resource=resource, combination_data=combination_data, precision=precision, jnuisance=jnuisance)
         
         if resource is None:
             resource = os.path.join(os.path.dirname(__file__), "resources/Bonnivard/")
@@ -276,11 +277,12 @@ class Custom(JFactor):
             boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
         """
 
-        super().__init__(logJ, DlogJ, jnuisance=True)
+        super().__init__(logJ=logJ, DlogJ=DlogJ, jnuisance=jnuisance)
         
         # The arguments logJ and DlogJ should be only used to hardcode the log J-factor
         # and it's uncertainty.
         self.sources = logJ.keys()
+        self.collaborations = logJ.values()
         self.logJ = logJ
         self.DlogJ = DlogJ
         self.combination_info = super()._construct_combination_info()
@@ -317,7 +319,7 @@ class GeringerSameth(JFactor):
             boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
         """
 
-        super().__init__(sources, collaborations, resource=None, combination_data=None, precision=2, jnuisance=True)
+        super().__init__(sources=sources, collaborations=collaborations, resource=resource, combination_data=combination_data, precision=precision, jnuisance=jnuisance)
         
         if resource is None:
             resource = os.path.join(os.path.dirname(__file__), "resources/GeringerSameth/intJ_cf.txt")

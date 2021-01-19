@@ -94,7 +94,7 @@ def plot_sigmav_ULs_from_hdf5(channel,
     ax.set_yscale('log')
     ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
     
-    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key))
+    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key), mode='r')
     masses = np.squeeze(sigmavULs[['masses']].to_numpy())
     data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
     
@@ -132,7 +132,7 @@ def plot_sigmav_CLbands_from_hdf5(channel,
     ax.set_yscale('log')
     ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
 
-    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key))
+    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key), mode='r')
     masses = np.squeeze(sigmavULs[['masses']].to_numpy())
     simulations = len(sigmavULs.columns)-2
     # Calculate the median (null hypothesis)
@@ -189,7 +189,7 @@ def plot_sigmav_CLbands_as_lines_from_hdf5(channel,
     ax.set_yscale('log')
     ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
 
-    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key))
+    sigmavULs = pd.read_hdf(file, key='{}/{}'.format(channel, key), mode='r')
     masses = np.squeeze(sigmavULs[['masses']].to_numpy())
     simulations = len(sigmavULs.columns)-2
     # Calculate the median (null hypothesis)
