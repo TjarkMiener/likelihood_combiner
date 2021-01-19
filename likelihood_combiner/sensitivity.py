@@ -1,3 +1,9 @@
+"""
+sensitivity.py
+==============
+Function to compute the sensitivity and the upper limits
+"""
+
 import numpy as np
 from scipy.interpolate import interp1d
 
@@ -5,7 +11,28 @@ __all__ = [
     'compute_sensitivity'
 ]
 
-def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
+def compute_sensitivity(sigmav_range, ts_dict, confidence_level = 2.71):
+    """
+    Run LklCom on a local linux machine. Support multiprocessing.
+    This function only works for linux users, because MacOS or Windows don't allow you to set up multiprocessing this way.
+    See: https://www.pythonforthelab.com/blog/differences-between-multiprocessing-windows-and-linux/
+
+    Parameters
+    ----------
+    sigmav_range: `numpy.ndarray of type numpy.float32`
+        sigmav range (ascending).
+    ts_dict: dict
+        likelihood data as dictionary with the DM mass as keys (`str`) and likelihood or ts values (ascending) as values (`numpy.ndarray of type numpy.float32`).
+    confidence_level: float
+        confidence level to extract the upper limit
+    Returns
+    -------
+    limits: dict
+        limits as dictionary with the DM mass as keys (`str`) and upper limit as values (`numpy.float32`).
+    sensitivities: dict
+        sensitivities as dictionary with the DM mass as keys (`str`) and sensitivity as values (`numpy.float32`).
+    """
+
     limits = {}
     sensitivities  = {}
     for key, tstable in ts_dict.items():
@@ -21,20 +48,20 @@ def compute_sensitivity(sigmav, ts_dict, confidence_level = 2.71):
                 ts = tstable + np.abs(min_val)
             else:
                 ts = tstable
-            cub_interpolation = interp1d(sigmav, ts, kind='cubic')
+            cub_interpolation = interp1d(sigmav_range, ts, kind='cubic')
             if min_ind == 0:
-                min_sigmav = sigmav[min_ind]
-            elif min_ind == sigmav.shape[0]-1:
+                min_sigmav = sigmav_range[min_ind]
+            elif min_ind == sigmav_range.shape[0]-1:
                 limits[key] = np.nan
                 sensitivities[key] = np.nan
                 continue
             else:
-                x = np.linspace(sigmav[min_ind-1], sigmav[min_ind+1], num=25, endpoint=True)
+                x = np.linspace(sigmav_range[min_ind-1], sigmav_range[min_ind+1], num=25, endpoint=True)
                 y = cub_interpolation(x)
                 min_sigmav = x[list(y).index(np.min(y))]
-            for ind in np.arange(min_ind,sigmav.shape[0]):
+            for ind in np.arange(min_ind,sigmav_range.shape[0]):
                 if ts[ind] > confidence_level:
-                    x = np.linspace(sigmav[ind-1], sigmav[ind], num=25, endpoint=True)
+                    x = np.linspace(sigmav_range[ind-1], sigmav_range[ind], num=25, endpoint=True)
                     y = cub_interpolation(x)
                     for i,y_val in enumerate(y):
                         if y_val > confidence_level:

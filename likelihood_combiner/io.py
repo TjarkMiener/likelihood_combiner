@@ -28,7 +28,7 @@ def write_to_lklcom(collaboration,
                     simulation=-1):
     """
     Write/append a given likelihood table into lklcom hdf5 file. lkl_dict is a dictionary
-    with the DM mass as keys (str) and likelihood or ts values (ascending) as values
+    with the DM mass as keys (`str`) and likelihood or ts values (ascending) as values
     (`numpy.ndarray of type numpy.float32`).
 
     Parameters
