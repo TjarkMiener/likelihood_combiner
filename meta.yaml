@@ -15,6 +15,7 @@ requirements:
     - python>=3.9
     - matplotlib
     - numpy>=1.15.0
+    - jupyter
     - scipy
     - pandas
     - pyyaml
@@ -23,6 +24,7 @@ requirements:
     - python>=3.9
     - matplotlib
     - numpy>=1.15.0
+    - jupyter
     - scipy
     - pandas
     - pyyaml
@@ -31,6 +33,7 @@ requirements:
     - python>=3.9
     - matplotlib
     - numpy>=1.15.0
+    - jupyter
     - scipy
     - pandas
     - pyyaml
