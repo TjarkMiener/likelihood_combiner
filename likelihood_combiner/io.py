@@ -4,6 +4,7 @@ io.py
 Functions to translate between data formats
 """
 
+import argparse
 import tables
 import numpy as np
 import os
@@ -94,7 +95,6 @@ def write_to_lklcom(collaboration,
 
     # Closing hdf5 file.
     h5.close()
-    return
 
 
 def gLike_to_lklcom(input_dir,
@@ -164,7 +164,29 @@ def gLike_to_lklcom(input_dir,
                         output_file=output_file,
                         mode=mode,
                         simulation=simulation)
-    return
+
+
+def _gLike_to_lklcom():
+    """
+    Interface with gLike_to_lklcom() from the command line. 
+    """
+
+    parser = argparse.ArgumentParser(
+            description=("Translate gLike txt files into lklcom hdf5 file."))
+    parser.add_argument(
+            '--input',
+            help="path to input directory")
+    parser.add_argument(
+            '--output',
+            help="path to output file")
+    parser.add_argument(
+            '--mode',
+            default="w",
+            help="mode to open the lklcom hdf5 file")
+
+    args = parser.parse_args()
+
+    gLike_to_lklcom(input_dir=args.input, output_file=args.output, mode=args.mode)
 
 
 def lklcom_to_gLike(input_file,
@@ -264,7 +286,28 @@ def lklcom_to_gLike(input_file,
         
     # Closing hdf5 file.
     h5.close()
-    return
+
+def _lklcom_to_gLike():
+    """
+    Interface with lklcom_to_gLike() from the command line. 
+    """
+
+    parser = argparse.ArgumentParser(
+            description=("Translate the lklcom hdf5 file into gLike txt files."))
+    parser.add_argument(
+            '--input',
+            help="path to input file")
+    parser.add_argument(
+            '--output',
+            help="path to output directory")
+    parser.add_argument('--reduce',
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="flag, if the txt files should be reduced/compressed")
+
+    args = parser.parse_args()
+
+    lklcom_to_gLike(input_file=args.input, output_dir=args.output, reduce=args.reduce)
 
 
 def gLikeLimits_to_lklcomLimits(input_dir,
@@ -298,8 +341,8 @@ def gLikeLimits_to_lklcomLimits(input_dir,
         # Going through the table in the txt file and storing the entries in a 2D array.
         table = np.array([[i for i in line.split()] for line in txt_file], dtype=np.float32)
 
-        # Dumping the upper limits in the h5 file
-        svUL['masses'] = table[0]
+        # Dumping the upper
+
         col_name = "data"
         if simulation != -1:
             col_name = "simu_{}".format(simulation)
@@ -307,7 +350,24 @@ def gLikeLimits_to_lklcomLimits(input_dir,
 
     pd.DataFrame(data=svUL).to_hdf(output_file, key='{}/{}'.format(file_info[0], file_info[1]), mode="a")
 
-    return
+def _gLikeLimits_to_lklcomLimits():
+    """
+    Interface with gLikeLimits_to_lklcomLimits() from the command line. 
+    """
+
+    parser = argparse.ArgumentParser(
+            description=("Translate gLike limits in txt files into lklcom results hdf5 file."))
+    parser.add_argument(
+            '--input',
+            help="path to input directory")
+    parser.add_argument(
+            '--output',
+            help="path to output directory")
+
+    args = parser.parse_args()
+
+    gLikeLimits_to_lklcomLimits(input_dir=args.input, output_file=args.output)
+
 
 def merge_to_lklcom(input_dir,
                     output_file):
@@ -347,4 +407,21 @@ def merge_to_lklcom(input_dir,
     if j_nuisance:
         pd.DataFrame(data=svUL_Jnuisance).to_hdf(output_file, key='{}/sigmavULs_Jnuisance'.format(file_info[0]), mode='a')
        
-    return
+def _merge_to_lklcom():
+    """
+    Interface with merge_to_lklcom() from the command line. 
+    """
+
+    parser = argparse.ArgumentParser(
+            description=("Merge single lklcom hdf5 file produced by the cluster to the lklcom results hdf5 file."))
+    parser.add_argument(
+            '--input',
+            help="path to input file or directory")
+    parser.add_argument(
+            '--output',
+            help="path to output directory")
+
+    args = parser.parse_args()
+
+    merge_to_lklcom(input_dir=args.input, output_file=args.output)
+

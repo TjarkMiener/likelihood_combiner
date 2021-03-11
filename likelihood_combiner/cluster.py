@@ -22,7 +22,7 @@ def run_cluster(settings,
         output=None,
         simulation=0):
     """
-    Run LklCom on a cluster/coomputing farm.
+    Run LklCom on a cluster/computing farm.
 
     Parameters
     ----------
@@ -53,27 +53,28 @@ def run_cluster(settings,
         settings['Data']['buildin_j_factors'] = "Custom"
 
     if settings['Data']['buildin_j_factors'] == "GeringerSameth":
-        LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(sources=settings['Configuration']['sources'],
+        LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(channel=channel,
+                                                    sources=settings['Configuration']['sources'],
                                                     collaborations=settings['Configuration']['collaborations'],
                                                     combination_data=input,
                                                     jnuisance=settings['Data']['j_nuisance'])
     elif settings['Data']['buildin_j_factors'] == "Bonnivard":
-        LklCom_jfactor_class = lklcom.jfactor.Bonnivard(sources=settings['Configuration']['sources'],
+        LklCom_jfactor_class = lklcom.jfactor.Bonnivard(channel=channel,
+                                                    sources=settings['Configuration']['sources'],
                                                     collaborations=settings['Configuration']['collaborations'],
                                                     combination_data=input,
                                                     jnuisance=settings['Data']['j_nuisance'])
     else:
         LklCom_jfactor_class = lklcom.jfactor.Custom(logJ=settings['Data']['custom_logJ'],
                                                     DlogJ=settings['Data']['custom_DlogJ'],
+                                                    channel=channel,
                                                     jnuisance=settings['Data']['j_nuisance'])
 
     # Initializing of the LklCom reader class
     if input.endswith(".h5") or input.endswith(".hdf5"):
-        LklCom_reader_class = lklcom.reader.LklCom_hdf5(channel=channel,
-                                                        LklCom_jfactor_class=LklCom_jfactor_class)
+        LklCom_reader_class = lklcom.reader.LklCom_hdf5(LklCom_jfactor_class=LklCom_jfactor_class)
     if os.path.isdir(input):
-        LklCom_reader_class = lklcom.reader.LklCom_txtdir(channel=channel,
-                                                        LklCom_jfactor_class=LklCom_jfactor_class)
+        LklCom_reader_class = lklcom.reader.LklCom_txtdir(LklCom_jfactor_class=LklCom_jfactor_class)
 
     # Constructing in the the sigmav range and spacing
     sigmav_range = get_sigmav_range()
@@ -85,4 +86,39 @@ def run_cluster(settings,
             LklCom_reader_class=LklCom_reader_class,
             output=output,
             simulations=[simulation])
-    return
+
+def main():
+
+    parser = argparse.ArgumentParser(
+            description=("Combining likelihoods from different experiments."))
+    parser.add_argument(
+            'config_file',
+            help="path to YAML configuration file with combining options")
+    parser.add_argument(
+            '--channel',
+            default='bb')
+    parser.add_argument(
+            '--input',
+            default=None,
+            help="path to input file or directory")
+    parser.add_argument(
+            '--output',
+            default=None,
+            help="path to output directory")
+    parser.add_argument(
+            '--simulation',
+            default=0,
+            type=int,
+            help="number of the simulation")
+
+    args = parser.parse_args()
+
+    with open(args.config_file, 'r') as config_file:
+        config = yaml.safe_load(config_file)
+    
+    run_cluster(settings=config, channel=args.channel, input=args.input, output=args.output, simulation=args.simulation)
+
+
+if __name__ == "__main__":
+    main()
+

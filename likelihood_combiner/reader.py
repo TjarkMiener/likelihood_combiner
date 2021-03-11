@@ -22,18 +22,18 @@ class LklCom:
     """
 
     def __init__(self,
-                 channel,
                  LklCom_jfactor_class,
+                 channel=None,
                  combination_data=None,
                  simulations=None,
                  sigmav_precision=3):
         """
         Parameters
         ----------
+        LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
+            class of the lklcom to handle the J-Factor.
         channel: str
             name of the channel.
-        LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
-            class of the lklcom to handle the J-Factor. 
         combination_data : path
             path to the dataset, which will be used in the combination.
         simulations: `list of int`
@@ -42,8 +42,11 @@ class LklCom:
             precision of the returning sigmav range.
         """
 
-        self.channel = channel
+
         self.LklCom_jfactor_class = LklCom_jfactor_class
+        if channel is None:
+            channel = LklCom_jfactor_class.get_channel()
+        self.channel = channel
         self.logJ = LklCom_jfactor_class.logJ
         self.combination_info = self._construct_combination_info()
         if combination_data is None:
@@ -87,33 +90,24 @@ class LklCom_hdf5(LklCom):
     """
 
     def __init__(self,
-                channel,
                 LklCom_jfactor_class,
+                channel=None,
                 combination_data=None,
                 sigmav_precision=3):
         """
         Parameters
         ----------
-        channel: str
-            name of the channel.
         LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
             class of the lklcom to handle the J-Factor.
+        channel: str
+            name of the channel.
         combination_data : path
             path to the dataset, which will be used in the combination.
         sigmav_precision: int
             presicion of the returning sigmav range.
         """
 
-        super().__init__(channel, LklCom_jfactor_class, combination_data, sigmav_precision=3)
-        
-        self.channel = channel
-        self.LklCom_jfactor_class = LklCom_jfactor_class
-        self.logJ = LklCom_jfactor_class.logJ
-        self.combination_info = self._construct_combination_info()
-        if combination_data is None:
-            combination_data = LklCom_jfactor_class.combination_data
-        self.combination_data = combination_data
-        self.sigmav_precision = sigmav_precision
+        super().__init__(LklCom_jfactor_class=LklCom_jfactor_class, channel=channel, combination_data=combination_data, sigmav_precision=sigmav_precision)
 
     def __call__(self, simulation=0):
         """
@@ -186,33 +180,24 @@ class LklCom_txtdir(LklCom):
     """
 
     def __init__(self,
-                channel,
                 LklCom_jfactor_class,
+                channel=None,
                 combination_data=None,
                 sigmav_precision=3):
         """
         Parameters
         ----------
-        channel: str
-            name of the channel.
         LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
             class of the lklcom to handle the J-Factor.
+        channel: str
+            name of the channel.
         combination_data : path
             path to the dataset, which will be used in the combination.
         sigmav_precision: int
             presicion of the returning sigmav range.
         """
 
-        super().__init__(channel, LklCom_jfactor_class, combination_data, sigmav_precision=3)
-            
-        self.channel = channel
-        self.LklCom_jfactor_class = LklCom_jfactor_class
-        self.logJ = LklCom_jfactor_class.logJ
-        self.combination_info = self._construct_combination_info()
-        if combination_data is None:
-            combination_data = LklCom_jfactor_class.combination_data
-        self.combination_data = combination_data
-        self.sigmav_precision = sigmav_precision
+        super().__init__(LklCom_jfactor_class=LklCom_jfactor_class, channel=channel, combination_data=combination_data, sigmav_precision=sigmav_precision)
             
     def __call__(self, simulation=0):
         """
@@ -283,18 +268,18 @@ class LklCom_custom(LklCom):
     """
 
     def __init__(self,
-                channel,
                 LklCom_jfactor_class,
+                channel,
                 combination_data,
                 simulations,
                 sigmav_precision=3):
         """
         Parameters
         ----------
-        channel: str
-            name of the channel.
         LklCom_jfactor_class : `likelihood_combiner.jfactor.JFactor`
             class of the lklcom to handle the J-Factor.
+        channel: str
+            name of the channel.
         combination_data : path
             path to the dataset, which will be used in the combination.
         simulations: `list of int`
@@ -303,13 +288,8 @@ class LklCom_custom(LklCom):
             presicion of the returning sigmav range.
         """
 
-        super().__init__(channel, LklCom_jfactor_class, combination_data, simulations, sigmav_precision=3)
+        super().__init__(LklCom_jfactor_class=LklCom_jfactor_class, channel=channel, combination_data=combination_data, simulations=simulations, sigmav_precision=sigmav_precision)
     
-        self.channel = channel
-        self.LklCom_jfactor_class = LklCom_jfactor_class
-        self.logJ = LklCom_jfactor_class.logJ
-        self.combination_info = self._construct_combination_info()
-        self.simulations = simulations
         self.tstables = {}
         for simulation in self.simulations:
             self.tstables[simulation] = combination_data[simulation]

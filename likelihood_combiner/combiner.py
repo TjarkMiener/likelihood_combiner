@@ -88,12 +88,9 @@ def combiner(sigmav_range,
                         combined_source_ts[source_mass] += ts_values
                         if jnuisance:
                             combined_source_ts_Jnuisance[source_mass] += ts_values
-                            if logJ[source][collaboration] != 0.0:
-                                combined_source_ts_Jnuisance[source_mass] = LklCom_jfactor_class.compute_Jnuisance(sigmav_range, combined_source_ts_Jnuisance[source_mass], np.float32(logJ[source][collaboration]))
-                    else:
-                        if jnuisance and logJ[source][collaboration] != 0.0 and collaboration == list(logJ[source].keys())[-1]:
-                            combined_source_ts_Jnuisance[source_mass] = LklCom_jfactor_class.compute_Jnuisance(sigmav_range, combined_source_ts_Jnuisance[source_mass], np.float32(logJ[source][collaboration]))
-
+                    
+                    if jnuisance and logJ[source][collaboration] != 0.0:
+                        combined_source_ts_Jnuisance[source_mass] = LklCom_jfactor_class.compute_Jnuisance(sigmav_range, combined_source_ts_Jnuisance[source_mass], np.float32(logJ[source][collaboration]))
 
             # Combine ts values for all dSphs
             for mass in total_masses:

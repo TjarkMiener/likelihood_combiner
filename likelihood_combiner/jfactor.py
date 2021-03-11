@@ -22,6 +22,7 @@ class JFactor:
     """
 
     def __init__(self,
+                channel=None,
                 sources=None,
                 collaborations=None,
                 resource=None,
@@ -33,6 +34,8 @@ class JFactor:
         """
         Parameters
         ----------
+        channel: str
+            name of the channel.
         sources: `list of str`
             list of the sources.
         collaborations: dict
@@ -53,6 +56,7 @@ class JFactor:
             boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
         """
     
+        self.channel = channel
         self.sources = sources
         self.collaborations = collaborations
         self.resource = resource
@@ -67,6 +71,9 @@ class JFactor:
         self.DlogJ_profile = None
         self.combination_info = None
         
+    def get_channel(self):
+        return self.channel
+
     def get_sources(self):
         return self.sources
 
@@ -183,15 +190,15 @@ class JFactor:
                 for h5_groups in h5.walk_groups("/"):
                     for table in h5.list_nodes(h5_groups, classname='Table'):
                         table_info = table._v_pathname.split("/")
-                        if (table_info[2], table_info[1]) not in combination_info and str(table_info[2]) in self.sources:
+                        if (table_info[2], table_info[1]) not in combination_info and table_info[2] in self.sources and table_info[1] in self.collaborations.keys() and table_info[3] == self.channel:
                             combination_info.append((table_info[2], table_info[1]))
-                    
+
             if os.path.isdir(self.combination_data):
                 # Writing only valid combinations from the lklcom hdf5 file.
                 txt_files = np.array([x for x in os.listdir(self.combination_data) if x.endswith(".txt")])
                 for txt_file in txt_files:
                     file_info = txt_file.replace('.txt','').split("_")
-                    if (file_info[1], file_info[2]) not in combination_info and file_info[1] in self.sources:
+                    if (file_info[1], file_info[2]) not in combination_info and file_info[1] in self.sources and file_info[2] in self.collaborations.keys() and file_info[0] == self.channel:
                         combination_info.append((file_info[1], file_info[2]))
         return combination_info
 
@@ -201,6 +208,7 @@ class Bonnivard(JFactor):
     """
 
     def __init__(self,
+                channel,
                 sources,
                 collaborations,
                 resource=None,
@@ -210,6 +218,8 @@ class Bonnivard(JFactor):
         """
         Parameters
         ----------
+        channel: str
+            name of the channel.
         sources: `list of str`
             list of the sources.
         collaborations: dict
@@ -224,19 +234,14 @@ class Bonnivard(JFactor):
             boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
         """
 
-        super().__init__(sources=sources, collaborations=collaborations, resource=resource, combination_data=combination_data, precision=precision, jnuisance=jnuisance)
+        super().__init__(channel=channel, sources=sources, collaborations=collaborations, resource=resource, combination_data=combination_data, precision=precision, jnuisance=jnuisance)
         
         if resource is None:
             resource = os.path.join(os.path.dirname(__file__), "resources/Bonnivard/")
         self.resource = resource
-        self.sources = sources
-        self.collaborations = collaborations
-        self.combination_data = combination_data
-        self.precision = precision
         self.combination_info = super()._construct_combination_info()
         self.angular_separations, self.logJ_profile, self.DlogJ_profile = self._construct_jprofile()
         self.logJ, self.DlogJ = super()._get_jfactors()
-        self.jnuisance = jnuisance
         if self.jnuisance:
             self.DlogJ_comb = super()._compute_DlogJ_for_combination()
                     
@@ -263,6 +268,7 @@ class Custom(JFactor):
     def __init__(self,
                 logJ,
                 DlogJ,
+                channel=None,
                 jnuisance=True):
         """
         Parameters
@@ -273,11 +279,13 @@ class Custom(JFactor):
         DlogJ: dict
             custom dictionary holding the hardcoded log J-Factor uncertainties to by-pass the build-in J-Factor sets, following the skeleton:
             {'name of the source': {'name of collaboration' : DlogJ value `float`}}
+        channel: str
+            name of the channel.
         jnuisance: bool
             boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
         """
 
-        super().__init__(logJ=logJ, DlogJ=DlogJ, jnuisance=jnuisance)
+        super().__init__(logJ=logJ, DlogJ=DlogJ, channel=channel, jnuisance=jnuisance)
         
         # The arguments logJ and DlogJ should be only used to hardcode the log J-factor
         # and it's uncertainty.
@@ -296,6 +304,7 @@ class GeringerSameth(JFactor):
     """
 
     def __init__(self,
+                channel,
                 sources,
                 collaborations,
                 resource=None,
@@ -305,6 +314,8 @@ class GeringerSameth(JFactor):
         """
         Parameters
         ----------
+        channel: str
+            name of the channel.
         sources: `list of str`
             list of the sources.
         collaborations: dict
@@ -319,19 +330,14 @@ class GeringerSameth(JFactor):
             boolean to enable the J-Factor uncertainty as nuisance parameter in the analysis.
         """
 
-        super().__init__(sources=sources, collaborations=collaborations, resource=resource, combination_data=combination_data, precision=precision, jnuisance=jnuisance)
+        super().__init__(channel=channel, sources=sources, collaborations=collaborations, resource=resource, combination_data=combination_data, precision=precision, jnuisance=jnuisance)
         
         if resource is None:
             resource = os.path.join(os.path.dirname(__file__), "resources/GeringerSameth/intJ_cf.txt")
         self.resource = resource
-        self.sources = sources
-        self.collaborations = collaborations
-        self.combination_data = combination_data
-        self.precision = precision
         self.combination_info = super()._construct_combination_info()
         self.angular_separations, self.logJ_profile, self.DlogJ_profile = self._construct_jprofile()
         self.logJ, self.DlogJ = super()._get_jfactors()
-        self.jnuisance = jnuisance
         if self.jnuisance:
             self.DlogJ_comb = super()._compute_DlogJ_for_combination()
 

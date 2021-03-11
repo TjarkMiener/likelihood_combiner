@@ -6,10 +6,11 @@ Function to automatically set up multiprocessing (only Linux supported)
 
 import argparse
 import numpy as np
-from multiprocessing import Process, Manager, freeze_support
+from multiprocessing import Process, Manager
 import tables
 import pandas as pd
 import os
+import sys
 import yaml
 
 import likelihood_combiner as lklcom
@@ -17,12 +18,12 @@ from likelihood_combiner.combiner import combiner
 from likelihood_combiner.utils import *
 
 __all__ = [
-    'run_local_on_linux'
+    'run_local'
 ]    
 
-def run_local_on_linux(settings,
-                       input,
-                       output):
+def run_local(settings,
+              input,
+              output):
     """
     Run LklCom on a local linux machine. Support multiprocessing.
     This function only works for linux users, because MacOS or Windows don't allow you to set up multiprocessing this way.
@@ -41,25 +42,6 @@ def run_local_on_linux(settings,
         path to the output hdf5 file
     """
 
-    # Initializing of the LklCom jfactor class
-    if 'buildin_j_factors' not in settings['Data']:
-        settings['Data']['buildin_j_factors'] = "Custom"
-    
-    if settings['Data']['buildin_j_factors'] == "GeringerSameth":
-        LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(sources=settings['Configuration']['sources'],
-                                                    collaborations=settings['Configuration']['collaborations'],
-                                                    combination_data=input,
-                                                    jnuisance=settings['Data']['j_nuisance'])
-    elif settings['Data']['buildin_j_factors'] == "Bonnivard":
-        LklCom_jfactor_class = lklcom.jfactor.Bonnivard(sources=settings['Configuration']['sources'],
-                                                    collaborations=settings['Configuration']['collaborations'],
-                                                    combination_data=input,
-                                                    jnuisance=settings['Data']['j_nuisance'])
-    else:
-        LklCom_jfactor_class = lklcom.jfactor.Custom(logJ=settings['Data']['custom_logJ'],
-                                                    DlogJ=settings['Data']['custom_DlogJ'],
-                                                    jnuisance=settings['Data']['j_nuisance'])
-
     # Constructing in the the sigmav range and spacing
     sigmav_range = get_sigmav_range()
     # Overwriting from the settings, if provided.
@@ -68,15 +50,37 @@ def run_local_on_linux(settings,
     
     for channel in settings['Configuration']['channels']:
         print("\nChannel '{}'".format(channel))
-        
+
+        # Initializing of the LklCom jfactor class
+        if 'buildin_j_factors' not in settings['Data']:
+            settings['Data']['buildin_j_factors'] = "GeringerSameth"
+    
+        if settings['Data']['buildin_j_factors'] == "GeringerSameth":
+            LklCom_jfactor_class = lklcom.jfactor.GeringerSameth(channel=channel,
+                                                        sources=settings['Configuration']['sources'],
+                                                        collaborations=settings['Configuration']['collaborations'],
+                                                        combination_data=input,
+                                                        jnuisance=settings['Data']['j_nuisance'])
+        elif settings['Data']['buildin_j_factors'] == "Bonnivard":
+            LklCom_jfactor_class = lklcom.jfactor.Bonnivard(channel=channel,
+                                                        sources=settings['Configuration']['sources'],
+                                                        collaborations=settings['Configuration']['collaborations'],
+                                                        combination_data=input,
+                                                        jnuisance=settings['Data']['j_nuisance'])
+        else:
+            LklCom_jfactor_class = lklcom.jfactor.Custom(logJ=settings['Data']['custom_logJ'],
+                                                        DlogJ=settings['Data']['custom_DlogJ'],
+                                                        channel=channel,
+                                                        jnuisance=settings['Data']['j_nuisance'])
+
+        if not LklCom_jfactor_class.combination_info:
+            sys.exit("The selected configuration do not match the data!")
         # Initializing of the LklCom reader class
         if input.endswith(".h5") or input.endswith(".hdf5"):
-            LklCom_reader_class = lklcom.reader.LklCom_hdf5(channel=channel,
-                                                            LklCom_jfactor_class=LklCom_jfactor_class)
+            LklCom_reader_class = lklcom.reader.LklCom_hdf5(LklCom_jfactor_class=LklCom_jfactor_class)
         if os.path.isdir(input):
-            LklCom_reader_class = lklcom.reader.LklCom_txtdir(channel=channel,
-                                                            LklCom_jfactor_class=LklCom_jfactor_class)
-        
+            LklCom_reader_class = lklcom.reader.LklCom_txtdir(LklCom_jfactor_class=LklCom_jfactor_class)
+
         # Set up the hardware settings for the parallel processing
         try:
             cpu_counts = os.cpu_count() if settings['Hardware']['cpu_counts'] == 'all' or settings['Hardware']['cpu_counts'] > os.cpu_count() else settings['Hardware']['cpu_counts']
@@ -92,59 +96,79 @@ def run_local_on_linux(settings,
             cpu_counts = simulations
 
         # Set up all processes
-        if simulations <= 1:
-            combiner(sigmav_range=sigmav_range,
-                    LklCom_reader_class=LklCom_reader_class,
-                    output=output)
-        else:
-            # Create a multiprocessing.Manager dict to share memory between the parallel processes
-            manager = Manager()
-            sigmavULs = manager.dict()
-            sigmavULs_Jnuisance = manager.dict()
+        # Create a multiprocessing.Manager dict to share memory between the parallel processes
+        manager = Manager()
+        sigmavULs = manager.dict()
+        sigmavULs_Jnuisance = manager.dict()
             
-            simulation_counter = manager.Value("i", 0)
-            progress_bar(simulation_counter.value, simulations)
-            parallel_simulations = np.array_split(np.arange(0,simulations), cpu_counts)
-            jobs = []
-            for parallel_simulation in parallel_simulations:
-                process = Process(target=combiner,
-                                    args=(sigmav_range,
-                                        LklCom_reader_class,
-                                        output,
-                                        sigmavULs,
-                                        sigmavULs_Jnuisance,
-                                        simulation_counter,
-                                        simulations,
-                                        parallel_simulation))
-                jobs.append(process)
-            try:
-                # Start all parallel processes
-                for j in jobs:
-                    j.start()
-                # Wait for all processes to complete
-                for j in jobs:
-                    j.join()
+        simulation_counter = manager.Value("i", 0)
+        progress_bar(simulation_counter.value, simulations)
+        parallel_simulations = np.array_split(np.arange(0,simulations), cpu_counts)
+        jobs = []
+        for parallel_simulation in parallel_simulations:
+            process = Process(target=combiner,
+                                args=(sigmav_range,
+                                    LklCom_reader_class,
+                                    output,
+                                    sigmavULs,
+                                    sigmavULs_Jnuisance,
+                                    simulation_counter,
+                                    simulations,
+                                    parallel_simulation))
+            jobs.append(process)
+        try:
+            # Start all parallel processes
+            for j in jobs:
+                j.start()
+            # Wait for all processes to complete
+            for j in jobs:
+                j.join()
 
-            except KeyboardInterrupt:
-                print("Caught keyboard interrupt, killing all processes...")
-                for j in jobs:
-                    j.terminate()
-            
-            # Convert multiprocessing.managers.DictProxy to python 'dict'
-            sigmavULs = dict(sigmavULs)
-            sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
+        except KeyboardInterrupt:
+            print("Caught keyboard interrupt, killing all processes...")
+            for j in jobs:
+                j.terminate()
 
-            svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
-            for key, value in dict(sigmavULs).items():
-                if channel in key: svUL[key.replace('{}_'.format(channel),'')] = value
-            svUL = pd.DataFrame(data=svUL)
+        # Convert multiprocessing.managers.DictProxy to python 'dict'
+        sigmavULs = dict(sigmavULs)
+        sigmavULs_Jnuisance= dict(sigmavULs_Jnuisance)
+
+        svUL = {'masses': sigmavULs['{}_masses'.format(channel)]}
+        for key, value in dict(sigmavULs).items():
+            if channel in key: svUL[key.replace('{}_'.format(channel),'')] = value
+        svUL = pd.DataFrame(data=svUL)
+        # Write the panda DataFrames into the hdf5 file
+        svUL.to_hdf(output, key='{}/sigmavULs'.format(channel), mode='a')
+        if settings['Data']['j_nuisance']:
+            svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
+            for key, value in dict(sigmavULs_Jnuisance).items():
+                if channel in key: svUL_Jnuisance[key.replace('{}_'.format(channel),'')] = value
+            svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
             # Write the panda DataFrames into the hdf5 file
-            svUL.to_hdf(output, key='{}/sigmavULs'.format(channel), mode='a')
-            if settings['Data']['j_nuisance']:
-                svUL_Jnuisance = {'masses': sigmavULs_Jnuisance['{}_masses'.format(channel)]}
-                for key, value in dict(sigmavULs_Jnuisance).items():
-                    if channel in key: svUL_Jnuisance[key.replace('{}_'.format(channel),'')] = value
-                svUL_Jnuisance = pd.DataFrame(data=svUL_Jnuisance)
-                # Write the panda DataFrames into the hdf5 file
-                svUL_Jnuisance.to_hdf(output, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
-    return
+            svUL_Jnuisance.to_hdf(output, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
+
+def main():
+
+    parser = argparse.ArgumentParser(
+            description=("Combining likelihoods from different experiments."))
+    parser.add_argument(
+            'config_file',
+            help="path to YAML configuration file with combining options")
+    parser.add_argument(
+            '--input',
+            help="path to input file or directory")
+    parser.add_argument(
+            '--output',
+            help="path to output file or directory")
+
+    args = parser.parse_args()
+
+    with open(args.config_file, 'r') as config_file:
+        config = yaml.safe_load(config_file)
+    
+    run_local(settings=config, input=args.input, output=args.output)
+
+
+if __name__ == "__main__":
+    main()
+
