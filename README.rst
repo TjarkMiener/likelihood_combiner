@@ -3,8 +3,8 @@ LlkCom: Combining likelihoods from different experiments.
 =========================================================
 
 
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4450884.svg
-   :target: https://doi.org/10.5281/zenodo.4450884
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3666281.svg
+   :target: https://doi.org/10.5281/zenodo.3666281
    :alt: DOI
 
 .. image:: https://travis-ci.com/TjarkMiener/likelihood_combiner.svg?branch=master
