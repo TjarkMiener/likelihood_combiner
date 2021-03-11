@@ -325,8 +325,11 @@ def gLikeLimits_to_lklcomLimits(input_dir,
 
     # Getting the txt files of the input directory.
     files = np.array([x for x in os.listdir(input_dir) if x.endswith(".txt")])
+    channels = np.unique([file.split("_")[0] for file in files])
     # Looping over the files and store the likelihood or ts tables into the lklcom hdf5 file.
     svUL = {}
+    for channel in channels:
+        svUL[channel] = {}
     for file in files:
         # Parsing the file name.
         file_info = file.replace('.txt','').split("_")
@@ -341,14 +344,17 @@ def gLikeLimits_to_lklcomLimits(input_dir,
         # Going through the table in the txt file and storing the entries in a 2D array.
         table = np.array([[i for i in line.split()] for line in txt_file], dtype=np.float32)
 
-        # Dumping the upper
+        # Dumping the upper limits
 
-        col_name = "data"
         if simulation != -1:
             col_name = "simu_{}".format(simulation)
-        svUL[col_name] = table[1]
+        else:
+            col_name = "data"
+            svUL[file_info[0]]['masses'] = table[0]
+        svUL[file_info[0]][col_name] = table[1]
 
-    pd.DataFrame(data=svUL).to_hdf(output_file, key='{}/{}'.format(file_info[0], file_info[1]), mode="a")
+    for channel in channels:
+         pd.DataFrame(data=svUL[channel]).to_hdf(output_file, key='{}/{}'.format(channel, file_info[1]), mode="a")
 
 def _gLikeLimits_to_lklcomLimits():
     """
@@ -384,9 +390,13 @@ def merge_to_lklcom(input_dir,
 
     # Getting the h5 files of the input directory.
     files = np.array([x for x in os.listdir(input_dir) if x.endswith(".h5") or x.endswith(".hdf5")])
-    
+    channels = np.unique([file.split("_")[0] for file in files])
+
     j_nuisance = False
     svUL, svUL_Jnuisance = {}, {}
+    for channel in channels:
+        svUL[channel] = {}
+        svUL_Jnuisance[channel] = {}
     for file in files:
         # Parsing the file name.
         file_info = file.replace('.hdf5','').replace('.h5','').split("_")
@@ -395,17 +405,18 @@ def merge_to_lklcom(input_dir,
         data = pd.HDFStore("{}/{}".format(input_dir, file), 'r')
 
         if '/masses' in data.keys():
-            svUL['masses'] = svUL_Jnuisance['masses'] = data['masses'][0]
+            svUL[file_info[0]]['masses'] = svUL_Jnuisance[file_info[0]]['masses'] = data['masses'][0]
         if '/sigmavULs' in data.keys():
-            svUL[file_info[1]] = data['sigmavULs'][0]
+            svUL[file_info[0]][file_info[1]] = data['sigmavULs'][0]
         if '/sigmavULs_Jnuisance' in data.keys():
             j_nuisance = True
-            svUL_Jnuisance[file_info[1]] = data['sigmavULs_Jnuisance'][0]
+            svUL_Jnuisance[file_info[0]][file_info[1]] = data['sigmavULs_Jnuisance'][0]
 
     # Write the panda DataFrames into the hdf5 file
-    pd.DataFrame(data=svUL).to_hdf(output_file, key='{}/sigmavULs'.format(file_info[0]), mode='a')
-    if j_nuisance:
-        pd.DataFrame(data=svUL_Jnuisance).to_hdf(output_file, key='{}/sigmavULs_Jnuisance'.format(file_info[0]), mode='a')
+    for channel in channels:
+        pd.DataFrame(data=svUL[channel]).to_hdf(output_file, key='{}/sigmavULs'.format(channel), mode='a')
+        if j_nuisance:
+            pd.DataFrame(data=svUL_Jnuisance[channel]).to_hdf(output_file, key='{}/sigmavULs_Jnuisance'.format(channel), mode='a')
        
 def _merge_to_lklcom():
     """
