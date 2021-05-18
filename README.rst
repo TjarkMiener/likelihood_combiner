@@ -105,14 +105,14 @@ Install the package:
 
 This should automatically install all dependencies (NOTE: this may take some time, as by default MKL is included as a dependency of NumPy and it is very large).
 
-If you want to import any functionality from LikelihoodCombiner into your own Python scripts, then you are all set. However, if you wish to make use of any of the scripts in likelihood_combiner/scripts (like {local/cluster}.py), you should also clone the repository locally and checkout the corresponding tag (i.e. for version v0.5.2):
+If you want to import any functionality from LikelihoodCombiner into your own Python scripts, then you are all set. However, if you wish to make use of any of the scripts in likelihood_combiner/scripts (like local.py), you should also clone the repository locally and checkout the corresponding tag (i.e. for version v0.5.4):
 
 .. code-block:: bash
 
    git clone https://github.com/TjarkMiener/likelihood_combiner
-   git checkout v0.5.2
+   git checkout v0.5.4
 
-LikelihoodCombiner should already have been installed in your environment by Conda, so no further installation steps (i.e. with setuptools or pip) are necessary and you should be able to run scripts/{local/cluster}.py directly.
+LikelihoodCombiner should already have been installed in your environment by Conda, so no further installation steps (i.e. with setuptools or pip) are necessary and you should be able to run scripts/local.py directly.
 
 Dependencies
 ^^^^^^^^^^^^
@@ -134,8 +134,10 @@ Run LikelihoodCombiner from the command line:
 
 .. code-block:: bash
 
-   LikelihoodCombiner_dir=</installation/path>/likelihood_combiner
-   python $LikelihoodCombiner_dir/scripts/{local|cluster}.py $LikelihoodCombiner_dir/config/example_config.yml
+   # You can launch the lklcom-local script, if you are running on a Linux machine
+   lklcom-local example_config.yml --input your_input --output your_output
+   # or you can run the cluster script with a specific channel and simulation 
+   lklcom-cluster your_config.yml --input your_input --output your_output --channel your_channel --simulation your_number_of_simulation
 
 Mock data
 ^^^^^^^^^
