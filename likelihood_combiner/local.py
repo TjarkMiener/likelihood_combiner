@@ -155,10 +155,10 @@ def main():
             'config_file',
             help="path to YAML configuration file with combining options")
     parser.add_argument(
-            '--input',
+            '--input', '-i',
             help="path to input file or directory")
     parser.add_argument(
-            '--output',
+            '--output', '-o',
             help="path to output file or directory")
 
     args = parser.parse_args()

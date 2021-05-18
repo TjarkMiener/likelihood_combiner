@@ -6,6 +6,7 @@ Functions to translate between data formats
 
 import argparse
 import tables
+import tarfile
 import numpy as np
 import os
 import pandas as pd
@@ -15,7 +16,8 @@ __all__ = [
     'gLike_to_lklcom',
     'lklcom_to_gLike',
     'gLikeLimits_to_lklcomLimits',
-    'merge_to_lklcom'
+    'merge_to_lklcom',
+    'gloryduck_reducer'
 ]
 
 def write_to_lklcom(collaboration,
@@ -174,13 +176,13 @@ def _gLike_to_lklcom():
     parser = argparse.ArgumentParser(
             description=("Translate gLike txt files into lklcom hdf5 file."))
     parser.add_argument(
-            '--input',
+            '--input', '-i',
             help="path to input directory")
     parser.add_argument(
-            '--output',
+            '--output', '-o',
             help="path to output file")
     parser.add_argument(
-            '--mode',
+            '--mode', '-m',
             default="w",
             help="mode to open the lklcom hdf5 file")
 
@@ -226,27 +228,29 @@ def lklcom_to_gLike(input_file,
             ts_values = np.array(table.cols._f_col('ts_values')).T
                     
             for i, mass in enumerate(masses):
-
-                if i == 0:
-                    # log J-Factor
-                    gLike_file.write("{:.2f} ".format(mass))
+                if reduce:
+                    if i == 0:
+                        # log J-Factor
+                        gLike_file.write("{:.2f} ".format(mass))
+                    else:
+                        # Detecting which channel correspond to which file
+                        # Channel have to be in the filename!
+                        if 'WW' == table_info[3] and mass < 80.39:
+                            kinematic_limit = i
+                            continue
+                        if 'ZZ' == table_info[3] and mass < 91.19:
+                            kinematic_limit = i
+                            continue
+                        if 'tt' == table_info[3] and mass < 173.1:
+                            kinematic_limit = i
+                            continue
+                        # the bb limit, because Cirelli et al. doesn't provide 5 GeV
+                        if 'bb' == table_info[3] and mass < 5.5:
+                            kinematic_limit = i
+                            continue
+                        gLike_file.write("{:.0f} ".format(mass))
                 else:
-                    # Detecting which channel correspond to which file
-                    # Channel have to be in the filename!
-                    if 'WW' == table_info[3] and mass < 80.39:
-                        kinematic_limit = i
-                        continue
-                    if 'ZZ' == table_info[3] and mass < 91.19:
-                        kinematic_limit = i
-                        continue
-                    if 'tt' == table_info[3] and mass < 173.1:
-                        kinematic_limit = i
-                        continue
-                    # the bb limit, because Cirelli et al. doesn't provide 5 GeV
-                    if 'bb' == table_info[3] and mass < 5.5:
-                        kinematic_limit = i
-                        continue
-                    gLike_file.write("{:.0f} ".format(mass))
+                    gLike_file.write("{} ".format(mass))
             gLike_file.write("\n")
 
             # Reducing the TS values (as agreed within the GloryDuck project).
@@ -295,12 +299,13 @@ def _lklcom_to_gLike():
     parser = argparse.ArgumentParser(
             description=("Translate the lklcom hdf5 file into gLike txt files."))
     parser.add_argument(
-            '--input',
+            '--input', '-i',
             help="path to input file")
     parser.add_argument(
-            '--output',
+            '--output', '-o',
             help="path to output directory")
-    parser.add_argument('--reduce',
+    parser.add_argument(
+            '--reduce', 'r',
             default=True,
             action=argparse.BooleanOptionalAction,
             help="flag, if the txt files should be reduced/compressed")
@@ -335,8 +340,8 @@ def gLikeLimits_to_lklcomLimits(input_dir,
         file_info = file.replace('.txt','').split("_")
         # Getting the number of the simulation.
         simulation=-1
-        if len(file_info) == 3:
-            simulation=file_info[2]
+        if file_info[-1].isnumeric():
+            simulation=file_info[-1]
 
         # Opening the txt file.
         txt_file = open("{}/{}".format(input_dir, file), "r")
@@ -364,10 +369,10 @@ def _gLikeLimits_to_lklcomLimits():
     parser = argparse.ArgumentParser(
             description=("Translate gLike limits in txt files into lklcom results hdf5 file."))
     parser.add_argument(
-            '--input',
+            '--input', '-i',
             help="path to input directory")
     parser.add_argument(
-            '--output',
+            '--output', '-o',
             help="path to output directory")
 
     args = parser.parse_args()
@@ -426,13 +431,179 @@ def _merge_to_lklcom():
     parser = argparse.ArgumentParser(
             description=("Merge single lklcom hdf5 file produced by the cluster to the lklcom results hdf5 file."))
     parser.add_argument(
-            '--input',
+            '--input', '-i',
             help="path to input file or directory")
     parser.add_argument(
-            '--output',
+            '--output', '-o',
             help="path to output directory")
 
     args = parser.parse_args()
 
     merge_to_lklcom(input_dir=args.input, output_file=args.output)
+
+def gloryduck_reducer(input_dir,
+                     reduce=True,
+                     shift=True):
+    """
+    Reduce and/or shift the GloryDuck txt files.
+    Important note: The channel have to be in the filename!
+
+    Parameters
+    ----------
+    input_dir: path
+        path to input directory.
+    reduce: bool
+        flag, if the txt files should be reduced/compressed.
+    shift: bool
+        flag, if the txt files should be shifted (TS values minimum to zero).
+    """
+
+    # Checking if the main directory exits
+    if not os.path.exists(input_dir):
+        raise ValueError("Error 404: Directory '{}' not found. ".format(input_dir))
+
+    # Creating a new directory (for the reduce files) inside the main directory
+    reduce_directory = "{}/reduced/".format(input_dir)
+
+    if not os.path.exists(reduce_directory):
+        os.makedirs(reduce_directory)
+
+    # Collacting all txt files
+    files = np.array([x for x in os.listdir(input_dir) if x.endswith(".txt")])
+
+    # Opening the tar gz file
+    tar_gz_filename = "reduced_files_GD.tar.gz"
+    tar_gz_file = tarfile.open(tar_gz_filename, "w:gz")
+
+    # Looping over the files to reduce them
+    file_counter = 0.0
+    nb_of_files = len(files)
+    for f in files:
+        # Showing progress bar
+        file_counter += 1.0
+        percentage = file_counter / nb_of_files * 100.0
+        print(f + " " + "{:.1f}".format(percentage) + "%")
+
+        # Opening the original txt files
+        filename = "{}/{}".format(input_dir, f)
+        file = open(filename, "r")
+
+        # Creating and opening the reduced txt files
+        reduce_filename = "{}/{}".format(reduce_directory, f)
+        reduce_filename = reduce_filename.replace("//","/")
+        reduce_file = open(reduce_filename, "w+")
+
+        # Going through the table in the txt file and storing the entries in a 2D array.
+        values = np.array([[i for i in line.split()] for line in file]).astype(np.float)
+        masses = np.squeeze(values[:1])
+
+        # Writing the first line, which contains the J-Factor and the different masses
+        # Detecting the kinematic limit to skip the masses below that limit
+
+        kinematic_limit = 0
+        for i, mass in enumerate(masses):
+            if reduce:
+                if i == 0:
+                    # log J-Factor
+                    reduce_file.write("{:.2f} ".format(mass))
+                else:
+                    # Detecting which channel correspond to which file
+                    # Channel have to be in the filename!
+                    if 'WW' in f and mass < 80.39:
+                        kinematic_limit = i
+                        continue
+                    if 'ZZ' in f and mass < 91.19:
+                        kinematic_limit = i
+                        continue
+                    if 'tt' in f and mass < 173.1:
+                        kinematic_limit = i
+                        continue
+                    # the bb limit, because Cirelli et al. doesn't provide 5 GeV
+                    if 'bb' in f and mass < 5.5:
+                        kinematic_limit = i
+                        continue
+                    reduce_file.write("{:.0f} ".format(mass))
+            else:
+                reduce_file.write("{} ".format(mass))
+        reduce_file.write("\n")
+
+        # Shifting the TS values minimum to zero
+        vals = values[1:]
+        if shift:
+            vals = vals.T
+            for i in np.arange(1,len(vals)):
+                vals[i] -= np.min(vals[i])
+            vals = vals.T
+
+        # Reducing the TS values as discussed in the GD call
+        for line in vals:
+            for i, value in enumerate(line):
+                if reduce:
+                    # Fist element of each line is the <sigma v> value
+                    if i == 0:
+                        reduce_file.write("{:.3e} ".format(value))
+                    else:
+                        # Skipping the masses below the kinematic limit
+                        if i <= kinematic_limit:
+                            continue
+                        # Different strength of reducing depending on ROI
+                        if value > 100:
+                            reduce_file.write("{:.0f} ".format(value))
+                        elif value > 1:
+                            reduce_file.write("{:.3f} ".format(value))
+                        elif value > 0.01:
+                            reduce_file.write("{:.3e} ".format(value))
+                        elif value > 1e-5:
+                            reduce_file.write("{:.2e} ".format(value))
+                        elif value < -1:
+                            reduce_file.write("{:.3f} ".format(value))
+                        elif value < -0.01:
+                            reduce_file.write("{:.3e} ".format(value))
+                        elif value < -1e-5:
+                            reduce_file.write("{:.2e} ".format(value))
+                        else:
+                            reduce_file.write("0 ")
+                else:
+                    reduce_file.write("{} ".format(value))
+
+            reduce_file.write("\n")
+
+        file.close()
+        reduce_file.close()
+
+        # Adding the final reduced file to the tar gz file
+        tar_gz_file.add(reduce_filename)
+
+    # Closing the tar gz file
+    tar_gz_file.close()
+
+    # Printing
+    print("---------------------------------")
+    print("Wrote the zipped tar file {}".format(tar_gz_filename))
+
+def _gloryduck_reducer():
+    """
+    Interface with gloryduck_reducer() from the command line. 
+    """
+
+    parser = argparse.ArgumentParser(
+            description=("Reduce the GloryDuck txt files."))
+    parser.add_argument(
+            '--input', '-i',
+            help="path to input directory")
+    parser.add_argument(
+            '--reduce', '-r',
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="flag, if txt files should be reduced/compressed")
+    parser.add_argument(
+            '--shift', '-s',
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="flag, if txt files should be shifted; TS values minimum to zero")
+
+
+    args = parser.parse_args()
+
+    gloryduck_reducer(input_dir=args.input, reduce=args.reduce, shift=args.shift)
 

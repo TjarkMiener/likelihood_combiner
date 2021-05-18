@@ -33,7 +33,8 @@ setup(name='lklcom',
                             'gLike_to_lklcom=likelihood_combiner.io:_gLike_to_lklcom',
                             'lklcom_to_gLike=likelihood_combiner.io:_lklcom_to_gLike',
                             'gLikeLimits_to_lklcomLimits=likelihood_combiner.io:_gLikeLimits_to_lklcomLimits',
-                            'merge_to_lklcom=likelihood_combiner.io:_merge_to_lklcom']
+                            'merge_to_lklcom=likelihood_combiner.io:_merge_to_lklcom',
+                            'gloryduck_reducer=likelihood_combiner.io:_gloryduck_reducer']
       },
       include_package_data=True,
       dependencies=[],

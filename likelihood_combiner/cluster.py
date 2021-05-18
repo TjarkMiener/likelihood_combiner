@@ -95,18 +95,18 @@ def main():
             'config_file',
             help="path to YAML configuration file with combining options")
     parser.add_argument(
-            '--channel',
+            '--channel', '-c',
             default='bb')
     parser.add_argument(
-            '--input',
+            '--input', '-i',
             default=None,
             help="path to input file or directory")
     parser.add_argument(
-            '--output',
+            '--output', '-o',
             default=None,
             help="path to output directory")
     parser.add_argument(
-            '--simulation',
+            '--simulation', '-s',
             default=0,
             type=int,
             help="number of the simulation")
