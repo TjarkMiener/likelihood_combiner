@@ -11,8 +11,11 @@ import pandas as pd
 __all__ = [
     'plot_thermal_relic',
     'plot_sigmav_ULs_from_hdf5',
+    'plot_sigmav_ULs_from_txt',
     'plot_sigmav_CLbands_from_hdf5',
-    'plot_sigmav_CLbands_as_lines_from_hdf5'
+    'plot_sigmav_CLbands_from_txt',
+    'plot_sigmav_CLbands_as_lines_from_hdf5',
+    'plot_sigmav_CLbands_as_lines_from_txt'
 ]
 
 
@@ -63,10 +66,10 @@ def plot_thermal_relic(ax=None, **kwargs):
 
 
 def plot_sigmav_ULs_from_hdf5(channel,
-                            file,
-                            key='sigmavULs_Jnuisance',
-                            ax=None,
-                            **kwargs):
+                              file,
+                              key='sigmavULs_Jnuisance',
+                              ax=None,
+                              **kwargs):
     """
     Plot the sigmav upper limits from hdf5 file.
 
@@ -98,6 +101,44 @@ def plot_sigmav_ULs_from_hdf5(channel,
     masses = np.squeeze(sigmavULs[['masses']].to_numpy())
     data = np.squeeze(sigmavULs[['data'.format(channel)]].to_numpy())
     
+    ax.plot(masses, data, **kwargs)
+    
+    return ax
+
+def plot_sigmav_ULs_from_txt(file,
+                             ax=None,
+                             **kwargs):
+    """
+    Plot the sigmav upper limits from txt file (produced via gLike).
+
+    Parameters
+    ----------
+    file: `path`
+        path to a txt file.
+    ax: `matplotlib.pyplot.axes`
+    kwargs: kwargs for `matplotlib.pyplot.plot`
+
+    Returns
+    -------
+    ax: `matplotlib.pyplot.axes`
+    """
+    
+    ax = plt.gca() if ax is None else ax
+
+    ax.set_xscale('log')
+    ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+
+    ax.set_yscale('log')
+    ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
+
+    txt_file = open("{}".format(file), "r")
+
+    # Going through the table in the txt file and storing the entries in a 2D array.
+    table = np.array([[i for i in line.split()] for line in txt_file], dtype=np.float32)
+    
+    masses = table[0]
+    data = table[1]
+
     ax.plot(masses, data, **kwargs)
     
     return ax
@@ -137,11 +178,11 @@ def plot_sigmav_CLbands_from_hdf5(channel,
     simulations = len(sigmavULs.columns)-2
     # Calculate the median (null hypothesis)
     simu_tab = sigmavULs.drop(['data','masses'], axis=1).to_numpy()
-    null_hypothesis = np.median(simu_tab, axis=1)
-    sv_plus1 = np.percentile(simu_tab, 84.14, axis=1)
-    sv_plus2 = np.percentile(simu_tab, 97.725, axis=1)
-    sv_minus1 = np.percentile(simu_tab, 15.87, axis=1)
-    sv_minus2 = np.percentile(simu_tab, 2.275, axis=1)
+    null_hypothesis = np.nanmedian(simu_tab, axis=1)
+    sv_plus1 = np.nanpercentile(simu_tab, 84.14, axis=1)
+    sv_plus2 = np.nanpercentile(simu_tab, 97.725, axis=1)
+    sv_minus1 = np.nanpercentile(simu_tab, 15.87, axis=1)
+    sv_minus2 = np.nanpercentile(simu_tab, 2.275, axis=1)
 
     ax.plot(masses, null_hypothesis, label=r'$ H_{0} $ median', c='k', linewidth=0.75, linestyle='--')
     ax.fill_between(masses,sv_plus1,sv_minus1, color='green', alpha=0.5, linewidth=0)
@@ -155,13 +196,69 @@ def plot_sigmav_CLbands_from_hdf5(channel,
 
     return ax
 
+def plot_sigmav_CLbands_from_txt(file,
+                                 ax=None):
+    """
+    Plot the sigmav confidence limit bands from txt file (produced via gLike).
 
+    Parameters
+    ----------
+    file: `path`
+        path to a txt file.
+    ax: `matplotlib.pyplot.axes`
+    kwargs: kwargs for `matplotlib.pyplot.plot`
+
+    Returns
+    -------
+    ax: `matplotlib.pyplot.axes`
+    """
+    
+    ax = plt.gca() if ax is None else ax
+
+    ax.set_xscale('log')
+    ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+
+    ax.set_yscale('log')
+    ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
+
+    txt_file = open("{}".format(file), "r")
+
+    # Going through the table in the txt file and storing the entries in a 2D array.
+    table = np.array([[i for i in line.split()] for line in txt_file], dtype=np.float32)[2:]
+
+    simu_tab = table[1::2]
+    simulations = len(simu_tab)
+    simu_tab = simu_tab.T
+    masses_array = table[::2]
+    mass_validation = [np.all(mass_array == masses_array[0]) for mass_array in masses_array]    
+    if all(mass_validation):
+        masses = masses_array[0]
+    else:
+        raise ValueError("Error: File '{}' contains simulations with different masses.".format(file))
+    # Calculate the median (null hypothesis)
+    null_hypothesis = np.nanmedian(simu_tab, axis=1)
+    sv_plus1 = np.nanpercentile(simu_tab, 84.14, axis=1)
+    sv_plus2 = np.nanpercentile(simu_tab, 97.725, axis=1)
+    sv_minus1 = np.nanpercentile(simu_tab, 15.87, axis=1)
+    sv_minus2 = np.nanpercentile(simu_tab, 2.275, axis=1)
+
+    ax.plot(masses, null_hypothesis, label=r'$ H_{0} $ median', c='k', linewidth=0.75, linestyle='--')
+    ax.fill_between(masses,sv_plus1,sv_minus1, color='green', alpha=0.5, linewidth=0)
+    ax.fill_between(masses,sv_plus1,sv_plus2, color='yellow', alpha=0.5, linewidth=0)
+    ax.fill_between(masses,sv_minus1,sv_minus2, color='yellow', alpha=0.5, linewidth=0)
+
+    # Creating dummy data, which is needed for beautiful legend
+    dummy_val = np.ones(len(masses))*1e-32
+    ax.plot(masses,dummy_val,label='$ H_{0} \, 68\% $ containment', c='green', alpha=0.5, linewidth=6)
+    ax.plot(masses,dummy_val,label=r'$ H_{0} \, 95\% $ containment', c='yellow', alpha=0.5, linewidth=6)
+
+    return ax
 
 def plot_sigmav_CLbands_as_lines_from_hdf5(channel,
-                                                file,
-                                                key='sigmavULs_Jnuisance',
-                                                ax=None,
-                                                **kwargs):
+                                           file,
+                                           key='sigmavULs_Jnuisance',
+                                           ax=None,
+                                           **kwargs):
     """
     Plot the sigmav confidence limit bands as lines from hdf5 file.
 
@@ -194,11 +291,68 @@ def plot_sigmav_CLbands_as_lines_from_hdf5(channel,
     simulations = len(sigmavULs.columns)-2
     # Calculate the median (null hypothesis)
     simu_tab = sigmavULs.drop(['data','masses'], axis=1).to_numpy()
-    null_hypothesis = np.median(simu_tab, axis=1)
-    sv_plus1 = np.percentile(simu_tab, 84.14, axis=1)
-    sv_plus2 = np.percentile(simu_tab, 97.725, axis=1)
-    sv_minus1 = np.percentile(simu_tab, 15.87, axis=1)
-    sv_minus2 = np.percentile(simu_tab, 2.275, axis=1)
+    null_hypothesis = np.nanmedian(simu_tab, axis=1)
+    sv_plus1 = np.nanpercentile(simu_tab, 84.14, axis=1)
+    sv_plus2 = np.nanpercentile(simu_tab, 97.725, axis=1)
+    sv_minus1 = np.nanpercentile(simu_tab, 15.87, axis=1)
+    sv_minus2 = np.nanpercentile(simu_tab, 2.275, axis=1)
+
+    ax.plot(masses, null_hypothesis, label=r'$ H_{0} $ median', **kwargs)
+    ax.plot(masses, sv_plus1, label=r'sv_plus1', **kwargs)
+    ax.plot(masses, sv_plus2, label=r'sv_plus2', **kwargs)
+    ax.plot(masses, sv_minus1, label=r'sv_minus1', **kwargs)
+    ax.plot(masses, sv_minus2, label=r'sv_minus2', **kwargs)
+
+    return ax
+
+
+def plot_sigmav_CLbands_as_lines_from_txt(file,
+                                          ax=None,
+                                          **kwargs):
+    """
+    Plot the sigmav confidence limit bands as lines from txt file (produced via gLike).
+
+    Parameters
+    ----------
+    file: `path`
+        path to a txt file.
+    ax: `matplotlib.pyplot.axes`
+    kwargs: kwargs for `matplotlib.pyplot.plot`
+
+    Returns
+    -------
+    ax: `matplotlib.pyplot.axes`
+    """
+
+    ax = plt.gca() if ax is None else ax
+
+    ax.set_xscale('log')
+    ax.set_xlabel(r'$m_{\chi} \: [GeV]$')
+
+    ax.set_yscale('log')
+    ax.set_ylabel(r'$\langle\sigma v\rangle \, [cm^{3}/s]$')
+
+    txt_file = open("{}".format(file), "r")
+
+    # Going through the table in the txt file and storing the entries in a 2D array.
+    table = np.array([[i for i in line.split()] for line in txt_file], dtype=np.float32)[2:]
+
+    simu_tab = table[1::2]
+    simulations = len(simu_tab)
+    simu_tab = simu_tab.T
+    masses_array = table[::2]
+    mass_validation = [np.all(mass_array == masses_array[0]) for mass_array in masses_array]    
+    if all(mass_validation):
+        masses = masses_array[0]
+    else:
+        raise ValueError("Error: File '{}' contains simulations with different masses.".format(file))
+    
+    # Calculate the median (null hypothesis)
+    null_hypothesis = np.nanmedian(simu_tab, axis=1)
+    sv_plus1 = np.nanpercentile(simu_tab, 84.14, axis=1)
+    sv_plus2 = np.nanpercentile(simu_tab, 97.725, axis=1)
+    sv_minus1 = np.nanpercentile(simu_tab, 15.87, axis=1)
+    sv_minus2 = np.nanpercentile(simu_tab, 2.275, axis=1)
 
     ax.plot(masses, null_hypothesis, label=r'$ H_{0} $ median', **kwargs)
     ax.plot(masses, sv_plus1, label=r'sv_plus1', **kwargs)
