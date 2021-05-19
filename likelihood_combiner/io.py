@@ -130,6 +130,7 @@ def gLike_to_lklcom(input_dir,
     
         # Parsing the file name.
         file_info = file.replace('.txt','').split("_")
+        file_info[2] = file_info[2].replace('-','')
         # Getting the number of the simulation.
         simulation=-1
         if len(file_info) == 4:
@@ -305,7 +306,7 @@ def _lklcom_to_gLike():
             '--output', '-o',
             help="path to output directory")
     parser.add_argument(
-            '--reduce', 'r',
+            '--reduce', '-r',
             default=True,
             action=argparse.BooleanOptionalAction,
             help="flag, if the txt files should be reduced/compressed")
